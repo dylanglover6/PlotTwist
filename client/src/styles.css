@@ -45,6 +45,11 @@ select {
   @apply w-full rounded-2xl border border-orange-100 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100;
 }
 
+input[type="datetime-local"] {
+  max-width: 100%;
+  min-width: 0;
+}
+
 .button-primary {
   @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
 }

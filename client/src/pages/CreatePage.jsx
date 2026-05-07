@@ -52,12 +52,20 @@ export default function CreatePage() {
   async function handleSubmit(event) {
     // Prevent the browser's default form submit, which would reload the page.
     event.preventDefault();
+    event.stopPropagation();
+
+    if (isSubmitting) return;
+
     setError("");
     setIsSubmitting(true);
 
-    // If the host chooses "now", use the current time. Otherwise use the scheduled time.
-    const unlockAt =
-      form.unlockMode === "now" || !form.unlockAt ? new Date() : new Date(form.unlockAt);
+    const unlockAt = getUnlockDate(form);
+
+    if (!unlockAt) {
+      setError("Choose a valid unlock date and time.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       // Send the form data to the Express API. The API saves it in MongoDB.
@@ -77,11 +85,9 @@ export default function CreatePage() {
       });
 
       // MongoDB creates _id. We use it to build the confirmation page URL.
-      navigate(`/created/${invite._id}`);
+      navigate(`/created/${invite._id}`, { replace: true });
     } catch (requestError) {
       setError(requestError.message);
-    } finally {
-      // finally runs whether the request succeeded or failed.
       setIsSubmitting(false);
     }
   }
@@ -258,18 +264,25 @@ export default function CreatePage() {
           )}
         </section>
 
-        <section className="grid gap-4 rounded-3xl bg-slate-950 p-4 text-white">
+        <section className="grid min-w-0 gap-4 overflow-hidden rounded-3xl bg-slate-950 p-4 text-white">
           <div className="flex items-center gap-2 font-bold">
             <CalendarClock size={18} />
             Unlock timing
           </div>
-          <select className="input text-slate-950" name="unlockMode" value={form.unlockMode} onChange={updateField}>
+          <select className="input min-w-0 max-w-full text-slate-950" name="unlockMode" value={form.unlockMode} onChange={updateField}>
             <option value="now">Unlock now</option>
             <option value="scheduled">Schedule unlock</option>
           </select>
           {/* Conditional rendering: show this input only when scheduled mode is selected. */}
           {form.unlockMode === "scheduled" ? (
-            <input className="input text-slate-950" name="unlockAt" type="datetime-local" value={form.unlockAt} onChange={updateField} />
+            <input
+              className="input min-w-0 max-w-full text-slate-950"
+              name="unlockAt"
+              required
+              type="datetime-local"
+              value={form.unlockAt}
+              onChange={updateField}
+            />
           ) : null}
         </section>
 
@@ -283,4 +296,16 @@ export default function CreatePage() {
       </form>
     </main>
   );
+}
+
+function getUnlockDate(form) {
+  // If the host chooses "now", use the current time. Otherwise use the scheduled time.
+  const unlockAt =
+    form.unlockMode === "now" || !form.unlockAt ? new Date() : new Date(form.unlockAt);
+
+  if (Number.isNaN(unlockAt.getTime())) {
+    return null;
+  }
+
+  return unlockAt;
 }

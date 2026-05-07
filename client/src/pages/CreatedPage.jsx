@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ExternalLink, Send } from "lucide-react";
+import { ExternalLink, Send, Share2 } from "lucide-react";
 
 export default function CreatedPage() {
   // useParams reads dynamic pieces of the URL. Here it reads /created/:id.
@@ -11,6 +11,31 @@ export default function CreatedPage() {
 
   // useMemo recalculates shareUrl only when sharePath changes.
   const shareUrl = useMemo(() => `${window.location.origin}${sharePath}`, [sharePath]);
+  const [shareStatus, setShareStatus] = useState("");
+
+  async function handleShare() {
+    setShareStatus("");
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Plot Twist",
+          text: "You have a Plot Twist waiting.",
+          url: shareUrl
+        });
+        return;
+      } catch (error) {
+        if (error.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareStatus("Copied");
+    } catch {
+      setShareStatus("Copy failed");
+    }
+  }
 
   return (
     <main className="mobile-page grid place-items-center bg-[linear-gradient(150deg,#111827,#312e81)] text-white">
@@ -20,8 +45,12 @@ export default function CreatedPage() {
         </div>
         <p className="text-sm font-bold uppercase text-orange-200">Ready to share</p>
         <h1 className="mt-2 text-4xl font-black leading-none tracking-normal">Your Plot Twist is live.</h1>
-        <div className="mt-6 rounded-3xl bg-white p-4 text-slate-950">
+        <div className="mt-6 grid gap-3 rounded-3xl bg-white p-4 text-slate-950">
           <p className="break-all text-sm font-semibold">{shareUrl}</p>
+          <button className="button-primary w-full bg-orange-500 text-slate-950 hover:bg-orange-400" type="button" onClick={handleShare}>
+            <Share2 size={18} />
+            {shareStatus || "Share link"}
+          </button>
         </div>
         <div className="mt-6 grid gap-3">
           {/* Open the reveal route for this exact invite id. */}
