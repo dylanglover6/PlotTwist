@@ -268,12 +268,14 @@ export default function CreatePage() {
               <div className="grid grid-cols-[1fr_auto] gap-2">
                 <input
                   className="input"
+                  aria-label="Search for a reveal image"
                   placeholder="Search Unsplash, e.g. Memphis"
                   value={imageQuery}
                   onChange={(event) => setImageQuery(event.target.value)}
                 />
                 <button
                   className="button-secondary px-4"
+                  aria-label="Search images"
                   disabled={isSearching}
                   type="button"
                   onClick={handleImageSearch}
@@ -319,6 +321,7 @@ export default function CreatePage() {
           </div>
           <select
             className="input min-w-0 max-w-full text-slate-950"
+            aria-label="Unlock timing"
             name="unlockMode"
             value={form.unlockMode}
             onChange={updateField}
@@ -330,6 +333,7 @@ export default function CreatePage() {
           {form.unlockMode === "scheduled" ? (
             <input
               className="input min-w-0 max-w-full text-slate-950"
+              aria-label="Unlock date and time"
               name="unlockAt"
               required
               type="datetime-local"
