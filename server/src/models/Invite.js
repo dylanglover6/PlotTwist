@@ -45,11 +45,6 @@ const inviteSchema = new mongoose.Schema(
       required: true,
       index: true
     },
-    permanentLink: {
-      type: String,
-      trim: true,
-      default: ""
-    },
     moreInfoEnabled: {
       type: Boolean,
       default: false

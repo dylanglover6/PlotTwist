@@ -25,7 +25,6 @@ router.post("/", async (req, res, next) => {
       imageAlt: req.body.imageAlt,
       unlockAt,
       expiresAt,
-      permanentLink: req.body.permanentLink,
       moreInfoEnabled: Boolean(req.body.moreInfoEnabled),
       moreInfoTitle: req.body.moreInfoTitle,
       moreInfoDescription: req.body.moreInfoDescription,

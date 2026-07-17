@@ -16,7 +16,6 @@ const defaultForm = {
   unlockMode: "now",
   unlockAt: "",
   expirationHours: 24,
-  permanentLink: "",
   moreInfoEnabled: false,
   moreInfoTitle: "",
   moreInfoDescription: ""
@@ -78,7 +77,6 @@ export default function CreatePage() {
         imageAlt: form.imageAlt,
         unlockAt: unlockAt.toISOString(),
         expirationHours: Number(form.expirationHours) || 24,
-        permanentLink: form.permanentLink,
         moreInfoEnabled: form.moreInfoEnabled,
         moreInfoTitle: form.moreInfoTitle,
         moreInfoDescription: form.moreInfoDescription
