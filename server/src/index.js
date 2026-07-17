@@ -1,14 +1,18 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { fileURLToPath } from "node:url";
 import { connectDB } from "./config/db.js";
 import healthRouter from "./routes/health.js";
 import imageRouter from "./routes/images.js";
 import inviteRouter from "./routes/invites.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProduction = process.env.NODE_ENV === "production";
+
 dotenv.config({
-  path: fileURLToPath(new URL("../.env", import.meta.url)),
+  path: path.resolve(__dirname, "../.env"),
   override: true
 });
 
@@ -23,13 +27,29 @@ app.use(
 );
 app.use(express.json());
 
-app.get("/", (_req, res) => {
-  res.json({ message: "Plot Twist API is running" });
-});
+// In development the API root returns a small status blob; in production "/"
+// is served by the client build below, so this is dev-only.
+if (!isProduction) {
+  app.get("/", (_req, res) => {
+    res.json({ message: "Plot Twist API is running" });
+  });
+}
 
 app.use("/api/health", healthRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/invites", inviteRouter);
+
+// In production, serve the built client so the whole app deploys as one
+// service. API routes are registered above; everything else falls back to the
+// SPA's index.html for client-side routing.
+if (isProduction) {
+  const clientDist = path.resolve(__dirname, "../../client/dist");
+  app.use(express.static(clientDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
 
 app.use((error, _req, res, _next) => {
   console.error(error);
