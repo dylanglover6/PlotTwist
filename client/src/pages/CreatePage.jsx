@@ -28,6 +28,8 @@ export default function CreatePage() {
   const [error, setError] = useState("");
   const [imageQuery, setImageQuery] = useState("");
   const [imageResults, setImageResults] = useState([]);
+  const [imageNotice, setImageNotice] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const imagePreviewRef = useRef(null);
@@ -99,7 +101,13 @@ export default function CreatePage() {
 
     try {
       const data = await searchImages(imageQuery);
-      setImageResults(data.results || []);
+      const results = data.results || [];
+      setImageResults(results);
+      // Surface a server note (e.g. missing API key), or a no-results message.
+      setImageNotice(
+        data.message || (results.length === 0 ? "No images found. Try another search." : "")
+      );
+      setHasSearched(true);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -292,8 +300,13 @@ export default function CreatePage() {
                   ))}
                 </div>
               ) : null}
+              {imageNotice ? (
+                <p className="mt-3 text-sm font-semibold text-orange-700">{imageNotice}</p>
+              ) : null}
               <p className="mt-3 text-sm text-slate-600">
-                Select a result to preview it as the reveal image.
+                {hasSearched && imageResults.length > 0
+                  ? "Select a result to preview it as the reveal image."
+                  : "Search for a photo to use as the reveal image, or skip it for a bold gradient."}
               </p>
             </>
           )}

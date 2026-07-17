@@ -34,6 +34,11 @@ app.use("/api/invites", inviteRouter);
 app.use((error, _req, res, _next) => {
   console.error(error);
 
+  // Malformed JSON body from express.json().
+  if (error.type === "entity.parse.failed" || error instanceof SyntaxError) {
+    return res.status(400).json({ message: "Request body is not valid JSON" });
+  }
+
   if (error.name === "ValidationError") {
     return res.status(400).json({ message: error.message });
   }
