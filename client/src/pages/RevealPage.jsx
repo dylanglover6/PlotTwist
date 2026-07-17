@@ -100,7 +100,7 @@ export default function RevealPage() {
   }
 
   return (
-    <main className="mobile-page bg-[radial-gradient(circle_at_top,#f97316,transparent_30%),linear-gradient(160deg,#111827,#3b0764)] text-white">
+    <main className="mobile-page bg-reveal text-white">
       <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-6">
         <header className="pt-2 text-center">
           <p className="text-sm font-bold uppercase text-orange-200">Plot Twist</p>
@@ -110,7 +110,7 @@ export default function RevealPage() {
         </header>
 
         <div>
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 shadow-glow backdrop-blur">
+          <div className="relative overflow-hidden rounded-card border border-white/10 bg-white/10 shadow-glow backdrop-blur">
             <ScratchReveal
               className="aspect-[4/5] bg-slate-900"
               brushSize={62}
@@ -180,8 +180,8 @@ export default function RevealPage() {
 // A small shared component for loading, locked, expired, and error screens.
 function StatusPage({ action, detail, icon, message, title }) {
   return (
-    <main className="mobile-page grid place-items-center bg-[linear-gradient(160deg,#111827,#581c87)] text-white">
-      <section className="w-full rounded-[2rem] border border-white/10 bg-white/10 p-6 text-center shadow-glow backdrop-blur">
+    <main className="mobile-page grid place-items-center bg-status text-white">
+      <section className="w-full rounded-card border border-white/10 bg-white/10 p-6 text-center shadow-glow backdrop-blur">
         <div className="mx-auto mb-5 grid size-14 place-items-center rounded-3xl bg-orange-400 text-slate-950">
           {icon || <Sparkles size={26} />}
         </div>

@@ -25,7 +25,7 @@ export default function MoreInfoPage() {
 
   return (
     <main className="mobile-page bg-orange-50">
-      <article className="overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-orange-950/10">
+      <article className="overflow-hidden rounded-card bg-white shadow-2xl shadow-orange-950/10">
         <RevealImage
           className="aspect-[4/3] w-full"
           src={invite.imageUrl}

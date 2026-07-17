@@ -38,8 +38,8 @@ export default function CreatedPage() {
   }
 
   return (
-    <main className="mobile-page grid place-items-center bg-[linear-gradient(150deg,#111827,#312e81)] text-white">
-      <section className="w-full rounded-[2rem] border border-white/10 bg-white/10 p-6 shadow-glow backdrop-blur">
+    <main className="mobile-page grid place-items-center bg-created text-white">
+      <section className="w-full rounded-card border border-white/10 bg-white/10 p-6 shadow-glow backdrop-blur">
         <div className="mb-5 grid size-14 place-items-center rounded-3xl bg-orange-400 text-slate-950">
           <Send size={24} />
         </div>

@@ -3,13 +3,18 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
+      // Colors, radius, and shadow resolve to the CSS variables defined in
+      // src/styles.css, so the whole theme is driven from one place.
       colors: {
-        ink: "#111827",
-        ember: "#f97316",
-        plum: "#5b21b6"
+        ink: "var(--color-ink)",
+        ember: "var(--color-ember)",
+        plum: "var(--color-plum)"
+      },
+      borderRadius: {
+        card: "var(--radius-card)"
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(249, 115, 22, 0.28)"
+        glow: "var(--shadow-glow)"
       }
     }
   },

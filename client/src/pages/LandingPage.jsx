@@ -16,7 +16,7 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="mobile-page bg-[radial-gradient(circle_at_top_left,#fed7aa,transparent_32%),linear-gradient(160deg,#fff7ed,#eef2ff)] text-ink">
+    <main className="mobile-page bg-app text-ink">
       <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-black">
@@ -45,7 +45,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-[2rem] border border-white/70 bg-slate-950 shadow-glow">
+        <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-card border border-white/70 bg-slate-950 shadow-glow">
           <ScratchReveal
             className="aspect-[5/4]"
             brushSize={54}
@@ -54,7 +54,7 @@ export default function LandingPage() {
             onComplete={handleScratchComplete}
             revealThreshold={42}
           >
-            <div className="grid h-full place-items-center bg-[radial-gradient(circle_at_top,#f97316,transparent_35%),linear-gradient(160deg,#111827,#3b0764)] p-6 text-center text-white">
+            <div className="grid h-full place-items-center bg-reveal p-6 text-center text-white">
               <div>
                 <div className="mx-auto mb-5 grid size-14 place-items-center rounded-3xl bg-orange-400 text-slate-950">
                   <Sparkles size={26} />

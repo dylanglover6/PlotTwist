@@ -232,7 +232,7 @@ export default function CreatePage() {
           {form.imageUrl ? (
             <div
               ref={imagePreviewRef}
-              className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-xl shadow-orange-950/10"
+              className="overflow-hidden rounded-card bg-slate-950 shadow-xl shadow-orange-950/10"
             >
               <div className="relative aspect-[4/5] overflow-hidden">
                 <img
