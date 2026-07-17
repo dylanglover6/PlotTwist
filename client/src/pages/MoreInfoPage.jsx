@@ -1,19 +1,12 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import AddToCalendarButton from "../components/AddToCalendarButton.jsx";
-import { getInvite } from "../api/invites.js";
+import RevealImage from "../components/RevealImage.jsx";
+import { useInvite } from "../hooks/useInvite.js";
 
 export default function MoreInfoPage() {
   const { id } = useParams();
-  const [invite, setInvite] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    getInvite(id)
-      .then(setInvite)
-      .catch((requestError) => setError(requestError.message));
-  }, [id]);
+  const { invite, error } = useInvite(id);
 
   if (error) {
     return <InfoShell title="More Information is missing." description={error} />;
@@ -33,17 +26,11 @@ export default function MoreInfoPage() {
   return (
     <main className="mobile-page bg-orange-50">
       <article className="overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-orange-950/10">
-        {invite.imageUrl ? (
-          <img
-            className="aspect-[4/3] w-full object-cover"
-            src={invite.imageUrl}
-            alt={invite.imageAlt || title}
-          />
-        ) : (
-          <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-orange-400 to-violet-700 text-white">
-            <Sparkles size={54} />
-          </div>
-        )}
+        <RevealImage
+          className="aspect-[4/3] w-full"
+          src={invite.imageUrl}
+          alt={invite.imageAlt || title}
+        />
         <div className="grid gap-4 p-5">
           <p className="text-sm font-bold uppercase text-orange-700">More Information</p>
           <h1 className="text-4xl font-black leading-none tracking-normal text-slate-950">

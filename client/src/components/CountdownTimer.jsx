@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getTimeLeft } from "../utils/time.js";
 
 // CountdownTimer receives a future date and displays how much time remains.
 export default function CountdownTimer({ className = "", onComplete, targetDate }) {
@@ -65,23 +66,4 @@ export default function CountdownTimer({ className = "", onComplete, targetDate 
       ))}
     </div>
   );
-}
-
-// Convert a millisecond difference into display-friendly date parts.
-function getTimeLeft(targetTime) {
-  const totalMilliseconds = Math.max(0, targetTime - Date.now());
-  const totalSeconds = Math.floor(totalMilliseconds / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return {
-    days,
-    hours,
-    minutes,
-    seconds,
-    totalMilliseconds,
-    totalSeconds
-  };
 }

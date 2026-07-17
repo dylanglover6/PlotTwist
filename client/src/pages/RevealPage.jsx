@@ -5,17 +5,17 @@ import AddToCalendarButton from "../components/AddToCalendarButton.jsx";
 import CountdownLabel from "../components/CountdownLabel.jsx";
 import CountdownTimer from "../components/CountdownTimer.jsx";
 import ParticleBurst from "../components/ParticleBurst.jsx";
+import RevealImage from "../components/RevealImage.jsx";
 import ScratchReveal from "../components/ScratchReveal.jsx";
-import { getInvite } from "../api/invites.js";
+import { useInvite } from "../hooks/useInvite.js";
 import { getRevealState } from "../utils/revealState.js";
 
 export default function RevealPage() {
   // This reads the invite id from /t/:id.
   const { id } = useParams();
 
-  // invite starts as null because the API request has not finished yet.
-  const [invite, setInvite] = useState(null);
-  const [error, setError] = useState("");
+  // Load the invite (and any load error) for this id.
+  const { invite, error } = useInvite(id);
 
   // now is updated every second so the page can move from locked to revealed.
   const [now, setNow] = useState(new Date());
@@ -25,13 +25,6 @@ export default function RevealPage() {
 
   // useCallback gives CountdownTimer a stable function reference.
   const handleTimerComplete = useCallback(() => setNow(new Date()), []);
-
-  // useEffect runs after React renders. This one loads invite data whenever id changes.
-  useEffect(() => {
-    getInvite(id)
-      .then(setInvite)
-      .catch((requestError) => setError(requestError.message));
-  }, [id]);
 
   // Reset the scratch state when navigating to a different invite.
   useEffect(() => {
@@ -133,17 +126,12 @@ export default function RevealPage() {
                   style={imageRevealStyle}
                 >
                   {/* Show the selected image if one exists. Otherwise show a fallback visual. */}
-                  {invite.imageUrl ? (
-                    <img
-                      className="h-full w-full object-cover"
-                      src={invite.imageUrl}
-                      alt={invite.imageAlt || invite.revealTitle}
-                    />
-                  ) : (
-                    <div className="grid h-full place-items-center bg-gradient-to-br from-orange-400 to-violet-700">
-                      <Sparkles size={56} />
-                    </div>
-                  )}
+                  <RevealImage
+                    className="h-full w-full"
+                    src={invite.imageUrl}
+                    alt={invite.imageAlt || invite.revealTitle}
+                    sparklesSize={56}
+                  />
                   <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center">
                     <div>
                       <h1 className="text-4xl font-black leading-none tracking-normal">
