@@ -36,8 +36,8 @@ export default function LandingPage() {
             Make your next invitation a surprise. <br></br>For the plot.
           </h1>
           <p className="mt-5 max-w-md text-lg leading-8 text-slate-700">
-            Build a temporary reveal page for trips, parties, concerts, birthdays, and
-            plans that deserve a little drama.
+            Build a temporary reveal page for trips, parties, concerts, birthdays, and plans that
+            deserve a little drama.
           </p>
           <Link className="button-primary mt-6 min-h-10 px-4 py-2 text-sm sm:w-auto" to="/create">
             Get Started
@@ -64,7 +64,10 @@ export default function LandingPage() {
                   Your surprise starts here.
                 </h2>
                 {hasRevealedCta ? (
-                  <Link className="button-primary mt-6 w-full bg-orange-500 text-slate-950 hover:bg-orange-400" to="/create">
+                  <Link
+                    className="button-primary mt-6 w-full bg-orange-500 text-slate-950 hover:bg-orange-400"
+                    to="/create"
+                  >
                     Send your own Plot Twist
                     <ArrowRight size={18} />
                   </Link>

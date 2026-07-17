@@ -138,7 +138,13 @@ export default function CreatePage() {
       <form className="surface grid gap-5 p-5" onSubmit={handleSubmit}>
         <label className="field">
           <span>Host name</span>
-          <input className="input" name="hostName" required value={form.hostName} onChange={updateField} />
+          <input
+            className="input"
+            name="hostName"
+            required
+            value={form.hostName}
+            onChange={updateField}
+          />
         </label>
 
         <label className="field">
@@ -155,12 +161,23 @@ export default function CreatePage() {
 
         <label className="field">
           <span>Reveal title</span>
-          <input className="input" name="revealTitle" required value={form.revealTitle} onChange={updateField} />
+          <input
+            className="input"
+            name="revealTitle"
+            required
+            value={form.revealTitle}
+            onChange={updateField}
+          />
         </label>
 
         <label className="field">
           <span>Description/details</span>
-          <textarea className="input min-h-32" name="description" value={form.description} onChange={updateField} />
+          <textarea
+            className="input min-h-32"
+            name="description"
+            value={form.description}
+            onChange={updateField}
+          />
         </label>
 
         <section className="grid gap-4 rounded-3xl border border-violet-100 bg-violet-50 p-4">
@@ -207,9 +224,16 @@ export default function CreatePage() {
             Destination image
           </div>
           {form.imageUrl ? (
-            <div ref={imagePreviewRef} className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-xl shadow-orange-950/10">
+            <div
+              ref={imagePreviewRef}
+              className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-xl shadow-orange-950/10"
+            >
               <div className="relative aspect-[4/5] overflow-hidden">
-                <img className="h-full w-full object-cover" src={form.imageUrl} alt={form.imageAlt || form.revealTitle} />
+                <img
+                  className="h-full w-full object-cover"
+                  src={form.imageUrl}
+                  alt={form.imageAlt || form.revealTitle}
+                />
                 <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center text-white">
                   <div>
                     <p className="text-sm font-bold uppercase text-orange-200">Preview</p>
@@ -224,7 +248,11 @@ export default function CreatePage() {
                   </div>
                 </div>
               </div>
-              <button className="button-secondary w-full rounded-none border-0" type="button" onClick={clearSelectedImage}>
+              <button
+                className="button-secondary w-full rounded-none border-0"
+                type="button"
+                onClick={clearSelectedImage}
+              >
                 <ArrowLeft size={18} />
                 Choose a different image
               </button>
@@ -238,7 +266,12 @@ export default function CreatePage() {
                   value={imageQuery}
                   onChange={(event) => setImageQuery(event.target.value)}
                 />
-                <button className="button-secondary px-4" disabled={isSearching} type="button" onClick={handleImageSearch}>
+                <button
+                  className="button-secondary px-4"
+                  disabled={isSearching}
+                  type="button"
+                  onClick={handleImageSearch}
+                >
                   {isSearching ? "..." : "Search"}
                 </button>
               </div>
@@ -252,7 +285,11 @@ export default function CreatePage() {
                       type="button"
                       onClick={() => selectImage(image)}
                     >
-                      <img className="aspect-[3/4] w-full object-cover" src={image.thumb} alt={image.alt} />
+                      <img
+                        className="aspect-[3/4] w-full object-cover"
+                        src={image.thumb}
+                        alt={image.alt}
+                      />
                     </button>
                   ))}
                 </div>
@@ -269,7 +306,12 @@ export default function CreatePage() {
             <CalendarClock size={18} />
             Unlock timing
           </div>
-          <select className="input min-w-0 max-w-full text-slate-950" name="unlockMode" value={form.unlockMode} onChange={updateField}>
+          <select
+            className="input min-w-0 max-w-full text-slate-950"
+            name="unlockMode"
+            value={form.unlockMode}
+            onChange={updateField}
+          >
             <option value="now">Unlock now</option>
             <option value="scheduled">Schedule unlock</option>
           </select>
@@ -287,7 +329,9 @@ export default function CreatePage() {
         </section>
 
         {/* Show the error message only when error has text. */}
-        {error ? <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p> : null}
+        {error ? (
+          <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>
+        ) : null}
 
         <button className="button-primary" disabled={isSubmitting} type="submit">
           <WandSparkles size={18} />

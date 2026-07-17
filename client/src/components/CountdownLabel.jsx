@@ -32,8 +32,7 @@ export default function CountdownLabel({ mode = "full", targetDate }) {
 
   return (
     <span>
-      {String(timeLeft.days).padStart(2, "0")} Days{" "}
-      {String(timeLeft.hours).padStart(2, "0")} Hours{" "}
+      {String(timeLeft.days).padStart(2, "0")} Days {String(timeLeft.hours).padStart(2, "0")} Hours{" "}
       {String(timeLeft.minutes).padStart(2, "0")} Minutes{" "}
       {String(timeLeft.seconds).padStart(2, "0")} Seconds
     </span>

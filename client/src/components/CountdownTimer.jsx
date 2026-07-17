@@ -47,7 +47,9 @@ export default function CountdownTimer({ className = "", onComplete, targetDate 
   }
 
   return (
-    <div className={`grid grid-cols-4 gap-2 ${isFinalCountdown ? "countdown-final" : ""} ${className}`}>
+    <div
+      className={`grid grid-cols-4 gap-2 ${isFinalCountdown ? "countdown-final" : ""} ${className}`}
+    >
       {units.map(([label, value]) => (
         <div
           className={`rounded-2xl bg-white/10 px-2 py-3 ${
@@ -56,7 +58,9 @@ export default function CountdownTimer({ className = "", onComplete, targetDate 
           key={label}
         >
           <strong className="block text-2xl leading-none">{String(value).padStart(2, "0")}</strong>
-          <span className="mt-1 block text-[0.68rem] font-bold uppercase text-orange-100">{label}</span>
+          <span className="mt-1 block text-[0.68rem] font-bold uppercase text-orange-100">
+            {label}
+          </span>
         </div>
       ))}
     </div>

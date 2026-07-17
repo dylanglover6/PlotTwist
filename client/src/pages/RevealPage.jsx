@@ -28,7 +28,9 @@ export default function RevealPage() {
 
   // useEffect runs after React renders. This one loads invite data whenever id changes.
   useEffect(() => {
-    getInvite(id).then(setInvite).catch((requestError) => setError(requestError.message));
+    getInvite(id)
+      .then(setInvite)
+      .catch((requestError) => setError(requestError.message));
   }, [id]);
 
   // Reset the scratch state when navigating to a different invite.
@@ -144,7 +146,9 @@ export default function RevealPage() {
                   )}
                   <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center">
                     <div>
-                      <h1 className="text-4xl font-black leading-none tracking-normal">{invite.revealTitle}</h1>
+                      <h1 className="text-4xl font-black leading-none tracking-normal">
+                        {invite.revealTitle}
+                      </h1>
                       {invite.description ? (
                         <p className="mx-auto mt-3 max-w-xs text-sm font-semibold leading-6 text-orange-50">
                           {invite.description}
@@ -164,7 +168,10 @@ export default function RevealPage() {
                       <span className="min-w-0 text-center leading-tight">More Information</span>
                     </Link>
                   ) : null}
-                  <AddToCalendarButton className="button-secondary min-w-0 px-2 text-xs" invite={invite} />
+                  <AddToCalendarButton
+                    className="button-secondary min-w-0 px-2 text-xs"
+                    invite={invite}
+                  />
                 </div>
               ) : (
                 <p className="text-center text-sm font-bold text-slate-500">

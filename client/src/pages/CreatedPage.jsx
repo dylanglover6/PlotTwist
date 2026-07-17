@@ -44,22 +44,34 @@ export default function CreatedPage() {
           <Send size={24} />
         </div>
         <p className="text-sm font-bold uppercase text-orange-200">Ready to share</p>
-        <h1 className="mt-2 text-4xl font-black leading-none tracking-normal">Your Plot Twist is live.</h1>
+        <h1 className="mt-2 text-4xl font-black leading-none tracking-normal">
+          Your Plot Twist is live.
+        </h1>
         <div className="mt-6 grid gap-3 rounded-3xl bg-white p-4 text-slate-950">
           <p className="break-all text-sm font-semibold">{shareUrl}</p>
-          <button className="button-primary w-full bg-orange-500 text-slate-950 hover:bg-orange-400" type="button" onClick={handleShare}>
+          <button
+            className="button-primary w-full bg-orange-500 text-slate-950 hover:bg-orange-400"
+            type="button"
+            onClick={handleShare}
+          >
             <Share2 size={18} />
             {shareStatus || "Share link"}
           </button>
         </div>
         <div className="mt-6 grid gap-3">
           {/* Open the reveal route for this exact invite id. */}
-          <Link className="button-primary bg-orange-500 text-slate-950 hover:bg-orange-400" to={sharePath}>
+          <Link
+            className="button-primary bg-orange-500 text-slate-950 hover:bg-orange-400"
+            to={sharePath}
+          >
             Open reveal page
             <ExternalLink size={18} />
           </Link>
           {/* Let the host start over with a fresh invite form. */}
-          <Link className="button-secondary border-white/20 bg-white/10 text-white hover:bg-white/20" to="/create">
+          <Link
+            className="button-secondary border-white/20 bg-white/10 text-white hover:bg-white/20"
+            to="/create"
+          >
             Create another
           </Link>
         </div>
