@@ -17,9 +17,14 @@ npm run dev:server     # server only, http://localhost:5000
 npm run dev:client     # client only, http://localhost:5173
 npm run build          # production build of the client
 npm run start          # run the server with node (no watch)
+npm run lint           # ESLint across both workspaces
+npm run format         # Prettier --write across the repo
+npm test               # Vitest (client) — runs *.test.js files once
 ```
 
-There is no test suite or linter configured.
+Run a single test file with `npm test --workspace client -- src/utils/revealState.test.js`.
+
+Linting is flat-config ESLint 9 ([eslint.config.js](eslint.config.js)); formatting is Prettier ([.prettierrc.json](.prettierrc.json)). Tests use Vitest and are colocated as `*.test.js`.
 
 Before running the server, create `server/.env` from `server/.env.example` and set `MONGODB_URI` (MongoDB Atlas or local) and `UNSPLASH_ACCESS_KEY`.
 
