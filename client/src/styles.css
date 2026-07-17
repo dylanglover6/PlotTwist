@@ -66,65 +66,67 @@ select {
   font: inherit;
 }
 
-/* ==========================================================================
-   Layout + component classes
-   ========================================================================== */
-.mobile-page {
-  @apply mx-auto min-h-screen w-full max-w-xl px-5 py-6;
-}
-
-.field {
-  @apply grid gap-2;
-}
-
-.field span {
-  @apply text-sm font-semibold text-slate-700;
-}
-
-.input {
-  @apply w-full rounded-2xl border border-orange-100 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100;
-}
-
 input[type="datetime-local"] {
   max-width: 100%;
   min-width: 0;
 }
 
-.button-primary {
-  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
-}
-
-.button-secondary {
-  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-orange-200 bg-white px-5 py-3 font-bold text-slate-950 transition hover:bg-orange-50;
-}
-
-.surface {
-  @apply rounded-card border border-white/70 bg-white/90 shadow-2xl shadow-orange-950/10 backdrop-blur;
-}
-
 /* ==========================================================================
-   Page background surfaces
-   Extracted from long arbitrary Tailwind values so the palette lives in one
-   place (the tokens above) instead of being duplicated across pages.
+   Layout + component classes
+   Declared in @layer components so Tailwind utilities (emitted in the later
+   utilities layer) reliably override them — e.g. `button-primary bg-orange-500`
+   renders orange, and compact/size overrides on buttons take effect.
    ========================================================================== */
-.bg-app {
-  background:
-    radial-gradient(circle at top left, var(--color-app-top), transparent 32%),
-    linear-gradient(160deg, var(--color-app-from), var(--color-app-to));
-}
+@layer components {
+  .mobile-page {
+    @apply mx-auto min-h-screen w-full max-w-xl px-5 py-6;
+  }
 
-.bg-reveal {
-  background:
-    radial-gradient(circle at top, var(--color-ember), transparent 30%),
-    linear-gradient(160deg, var(--color-ink), var(--color-reveal-deep));
-}
+  .field {
+    @apply grid gap-2;
+  }
 
-.bg-status {
-  background: linear-gradient(160deg, var(--color-ink), var(--color-status-deep));
-}
+  .field span {
+    @apply text-sm font-semibold text-slate-700;
+  }
 
-.bg-created {
-  background: linear-gradient(150deg, var(--color-ink), var(--color-created-deep));
+  .input {
+    @apply w-full rounded-2xl border border-orange-100 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-orange-200 bg-white px-5 py-3 font-bold text-slate-950 transition hover:bg-orange-50;
+  }
+
+  .surface {
+    @apply rounded-card border border-white/70 bg-white/90 shadow-2xl shadow-orange-950/10 backdrop-blur;
+  }
+
+  /* Page background surfaces: palette lives in the tokens above instead of
+     being duplicated across pages as long arbitrary Tailwind values. */
+  .bg-app {
+    background:
+      radial-gradient(circle at top left, var(--color-app-top), transparent 32%),
+      linear-gradient(160deg, var(--color-app-from), var(--color-app-to));
+  }
+
+  .bg-reveal {
+    background:
+      radial-gradient(circle at top, var(--color-ember), transparent 30%),
+      linear-gradient(160deg, var(--color-ink), var(--color-reveal-deep));
+  }
+
+  .bg-status {
+    background: linear-gradient(160deg, var(--color-ink), var(--color-status-deep));
+  }
+
+  .bg-created {
+    background: linear-gradient(150deg, var(--color-ink), var(--color-created-deep));
+  }
 }
 
 /* ==========================================================================
