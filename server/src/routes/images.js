@@ -33,14 +33,20 @@ router.get("/search", async (req, res, next) => {
     }
 
     const data = await response.json();
-    const results = data.results.map((image) => ({
-      id: image.id,
-      alt: image.alt_description || image.description || query,
-      thumb: image.urls.small,
-      url: image.urls.regular,
-      creditName: image.user.name,
-      creditUrl: image.user.links.html
-    }));
+
+    // Defensively read the response: Unsplash may change shape or omit nested
+    // fields, and a missing `results` array or `urls` object should not 500.
+    const rawResults = Array.isArray(data?.results) ? data.results : [];
+    const results = rawResults
+      .filter((image) => image?.urls?.regular)
+      .map((image) => ({
+        id: image.id,
+        alt: image.alt_description || image.description || query,
+        thumb: image.urls.small || image.urls.regular,
+        url: image.urls.regular,
+        creditName: image.user?.name || "Unsplash",
+        creditUrl: image.user?.links?.html || "https://unsplash.com"
+      }));
 
     res.json({ results });
   } catch (error) {

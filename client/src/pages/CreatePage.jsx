@@ -16,7 +16,6 @@ const defaultForm = {
   unlockMode: "now",
   unlockAt: "",
   expirationHours: 24,
-  permanentLink: "",
   moreInfoEnabled: false,
   moreInfoTitle: "",
   moreInfoDescription: ""
@@ -29,6 +28,8 @@ export default function CreatePage() {
   const [error, setError] = useState("");
   const [imageQuery, setImageQuery] = useState("");
   const [imageResults, setImageResults] = useState([]);
+  const [imageNotice, setImageNotice] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const imagePreviewRef = useRef(null);
@@ -78,7 +79,6 @@ export default function CreatePage() {
         imageAlt: form.imageAlt,
         unlockAt: unlockAt.toISOString(),
         expirationHours: Number(form.expirationHours) || 24,
-        permanentLink: form.permanentLink,
         moreInfoEnabled: form.moreInfoEnabled,
         moreInfoTitle: form.moreInfoTitle,
         moreInfoDescription: form.moreInfoDescription
@@ -101,7 +101,13 @@ export default function CreatePage() {
 
     try {
       const data = await searchImages(imageQuery);
-      setImageResults(data.results || []);
+      const results = data.results || [];
+      setImageResults(results);
+      // Surface a server note (e.g. missing API key), or a no-results message.
+      setImageNotice(
+        data.message || (results.length === 0 ? "No images found. Try another search." : "")
+      );
+      setHasSearched(true);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -138,7 +144,13 @@ export default function CreatePage() {
       <form className="surface grid gap-5 p-5" onSubmit={handleSubmit}>
         <label className="field">
           <span>Host name</span>
-          <input className="input" name="hostName" required value={form.hostName} onChange={updateField} />
+          <input
+            className="input"
+            name="hostName"
+            required
+            value={form.hostName}
+            onChange={updateField}
+          />
         </label>
 
         <label className="field">
@@ -155,12 +167,23 @@ export default function CreatePage() {
 
         <label className="field">
           <span>Reveal title</span>
-          <input className="input" name="revealTitle" required value={form.revealTitle} onChange={updateField} />
+          <input
+            className="input"
+            name="revealTitle"
+            required
+            value={form.revealTitle}
+            onChange={updateField}
+          />
         </label>
 
         <label className="field">
           <span>Description/details</span>
-          <textarea className="input min-h-32" name="description" value={form.description} onChange={updateField} />
+          <textarea
+            className="input min-h-32"
+            name="description"
+            value={form.description}
+            onChange={updateField}
+          />
         </label>
 
         <section className="grid gap-4 rounded-3xl border border-violet-100 bg-violet-50 p-4">
@@ -207,9 +230,16 @@ export default function CreatePage() {
             Destination image
           </div>
           {form.imageUrl ? (
-            <div ref={imagePreviewRef} className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-xl shadow-orange-950/10">
+            <div
+              ref={imagePreviewRef}
+              className="overflow-hidden rounded-card bg-slate-950 shadow-xl shadow-orange-950/10"
+            >
               <div className="relative aspect-[4/5] overflow-hidden">
-                <img className="h-full w-full object-cover" src={form.imageUrl} alt={form.imageAlt || form.revealTitle} />
+                <img
+                  className="h-full w-full object-cover"
+                  src={form.imageUrl}
+                  alt={form.imageAlt || form.revealTitle}
+                />
                 <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center text-white">
                   <div>
                     <p className="text-sm font-bold uppercase text-orange-200">Preview</p>
@@ -224,7 +254,11 @@ export default function CreatePage() {
                   </div>
                 </div>
               </div>
-              <button className="button-secondary w-full rounded-none border-0" type="button" onClick={clearSelectedImage}>
+              <button
+                className="button-secondary w-full rounded-none border-0"
+                type="button"
+                onClick={clearSelectedImage}
+              >
                 <ArrowLeft size={18} />
                 Choose a different image
               </button>
@@ -234,11 +268,18 @@ export default function CreatePage() {
               <div className="grid grid-cols-[1fr_auto] gap-2">
                 <input
                   className="input"
+                  aria-label="Search for a reveal image"
                   placeholder="Search Unsplash, e.g. Memphis"
                   value={imageQuery}
                   onChange={(event) => setImageQuery(event.target.value)}
                 />
-                <button className="button-secondary px-4" disabled={isSearching} type="button" onClick={handleImageSearch}>
+                <button
+                  className="button-secondary px-4"
+                  aria-label="Search images"
+                  disabled={isSearching}
+                  type="button"
+                  onClick={handleImageSearch}
+                >
                   {isSearching ? "..." : "Search"}
                 </button>
               </div>
@@ -252,13 +293,22 @@ export default function CreatePage() {
                       type="button"
                       onClick={() => selectImage(image)}
                     >
-                      <img className="aspect-[3/4] w-full object-cover" src={image.thumb} alt={image.alt} />
+                      <img
+                        className="aspect-[3/4] w-full object-cover"
+                        src={image.thumb}
+                        alt={image.alt}
+                      />
                     </button>
                   ))}
                 </div>
               ) : null}
+              {imageNotice ? (
+                <p className="mt-3 text-sm font-semibold text-orange-700">{imageNotice}</p>
+              ) : null}
               <p className="mt-3 text-sm text-slate-600">
-                Select a result to preview it as the reveal image.
+                {hasSearched && imageResults.length > 0
+                  ? "Select a result to preview it as the reveal image."
+                  : "Search for a photo to use as the reveal image, or skip it for a bold gradient."}
               </p>
             </>
           )}
@@ -269,7 +319,13 @@ export default function CreatePage() {
             <CalendarClock size={18} />
             Unlock timing
           </div>
-          <select className="input min-w-0 max-w-full text-slate-950" name="unlockMode" value={form.unlockMode} onChange={updateField}>
+          <select
+            className="input min-w-0 max-w-full text-slate-950"
+            aria-label="Unlock timing"
+            name="unlockMode"
+            value={form.unlockMode}
+            onChange={updateField}
+          >
             <option value="now">Unlock now</option>
             <option value="scheduled">Schedule unlock</option>
           </select>
@@ -277,6 +333,7 @@ export default function CreatePage() {
           {form.unlockMode === "scheduled" ? (
             <input
               className="input min-w-0 max-w-full text-slate-950"
+              aria-label="Unlock date and time"
               name="unlockAt"
               required
               type="datetime-local"
@@ -287,7 +344,9 @@ export default function CreatePage() {
         </section>
 
         {/* Show the error message only when error has text. */}
-        {error ? <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p> : null}
+        {error ? (
+          <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>
+        ) : null}
 
         <button className="button-primary" disabled={isSubmitting} type="submit">
           <WandSparkles size={18} />

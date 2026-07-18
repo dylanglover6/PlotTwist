@@ -4,6 +4,7 @@ import { Invite } from "../models/Invite.js";
 
 const router = Router();
 const defaultExpirationHours = 24;
+const maxExpirationHours = 24 * 30; // Reveal links are temporary: cap at 30 days.
 
 router.post("/", async (req, res, next) => {
   try {
@@ -13,7 +14,14 @@ router.post("/", async (req, res, next) => {
       return res.status(400).json({ message: "unlockAt must be a valid date" });
     }
 
-    const expirationHours = Number(req.body.expirationHours) || defaultExpirationHours;
+    const expirationHours = resolveExpirationHours(req.body.expirationHours);
+
+    if (expirationHours === null) {
+      return res.status(400).json({
+        message: `expirationHours must be a number between 1 and ${maxExpirationHours}`
+      });
+    }
+
     const expiresAt = new Date(unlockAt.getTime() + expirationHours * 60 * 60 * 1000);
 
     const invite = await Invite.create({
@@ -25,7 +33,6 @@ router.post("/", async (req, res, next) => {
       imageAlt: req.body.imageAlt,
       unlockAt,
       expiresAt,
-      permanentLink: req.body.permanentLink,
       moreInfoEnabled: Boolean(req.body.moreInfoEnabled),
       moreInfoTitle: req.body.moreInfoTitle,
       moreInfoDescription: req.body.moreInfoDescription,
@@ -51,6 +58,22 @@ router.get("/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+// Returns a valid expiration window in hours, the default when none was sent,
+// or null when the caller sent something invalid (so the route can 400).
+function resolveExpirationHours(raw) {
+  if (raw === undefined || raw === null || raw === "") {
+    return defaultExpirationHours;
+  }
+
+  const hours = Number(raw);
+
+  if (!Number.isFinite(hours) || hours <= 0 || hours > maxExpirationHours) {
+    return null;
+  }
+
+  return hours;
+}
 
 function hashIp(ip = "") {
   return crypto.createHash("sha256").update(ip).digest("hex");
