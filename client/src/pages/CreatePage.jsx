@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarClock, ImageIcon, WandSparkles } from "lucide-react";
+import { ArrowLeft, CalendarClock, ImageIcon, Mail, WandSparkles } from "lucide-react";
 import { searchImages } from "../api/images.js";
 import { createInvite } from "../api/invites.js";
 
@@ -16,6 +16,7 @@ const defaultForm = {
   unlockMode: "now",
   unlockAt: "",
   expirationHours: 24,
+  email: "",
   moreInfoEnabled: false,
   moreInfoTitle: "",
   moreInfoDescription: ""
@@ -79,13 +80,18 @@ export default function CreatePage() {
         imageAlt: form.imageAlt,
         unlockAt: unlockAt.toISOString(),
         expirationHours: Number(form.expirationHours) || 24,
+        email: form.email.trim(),
         moreInfoEnabled: form.moreInfoEnabled,
         moreInfoTitle: form.moreInfoTitle,
         moreInfoDescription: form.moreInfoDescription
       });
 
       // MongoDB creates _id. We use it to build the confirmation page URL.
-      navigate(`/created/${invite._id}`, { replace: true });
+      // emailPending tells the next page to show a "confirm your email" note.
+      navigate(`/created/${invite._id}`, {
+        replace: true,
+        state: { emailPending: invite.emailPending }
+      });
     } catch (requestError) {
       setError(requestError.message);
       setIsSubmitting(false);
@@ -341,6 +347,30 @@ export default function CreatePage() {
               onChange={updateField}
             />
           ) : null}
+        </section>
+
+        <section className="grid gap-2 rounded-3xl border border-orange-100 bg-white p-4">
+          <div className="flex items-center gap-2 font-bold text-slate-800">
+            <Mail size={18} />
+            Email me updates
+            <span className="text-xs font-semibold uppercase text-slate-400">Optional</span>
+          </div>
+          <label className="field">
+            <span className="sr-only">Your email address</span>
+            <input
+              className="input"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={updateField}
+            />
+          </label>
+          <p className="text-sm text-slate-600">
+            We&apos;ll send a confirmation link. Confirm it to get your share link and a heads-up
+            when your Plot Twist goes live and when it expires. You can unsubscribe anytime.
+          </p>
         </section>
 
         {/* Show the error message only when error has text. */}

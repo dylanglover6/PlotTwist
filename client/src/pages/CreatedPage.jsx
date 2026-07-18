@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ExternalLink, Send, Share2 } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { ExternalLink, Mail, Send, Share2 } from "lucide-react";
 
 export default function CreatedPage() {
   // useParams reads dynamic pieces of the URL. Here it reads /created/:id.
   const { id } = useParams();
+
+  // Set by CreatePage when the creator asked for email updates.
+  const location = useLocation();
+  const emailPending = Boolean(location.state?.emailPending);
 
   // This is the path the recipient will open.
   const sharePath = `/t/${id}`;
@@ -58,6 +62,15 @@ export default function CreatedPage() {
             {shareStatus || "Share link"}
           </button>
         </div>
+        {emailPending ? (
+          <div className="mt-4 flex items-start gap-3 rounded-3xl border border-white/15 bg-white/10 p-4 text-sm">
+            <Mail size={18} className="mt-0.5 shrink-0 text-orange-200" />
+            <p className="text-orange-50">
+              Check your inbox — confirm your email to get updates when this Plot Twist goes live
+              and when it expires.
+            </p>
+          </div>
+        ) : null}
         <div className="mt-6 grid gap-3">
           {/* Open the reveal route for this exact invite id. */}
           <Link

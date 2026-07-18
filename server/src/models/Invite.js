@@ -38,12 +38,17 @@ const inviteSchema = new mongoose.Schema(
     },
     unlockAt: {
       type: Date,
-      required: true
+      required: true,
+      index: true
     },
     expiresAt: {
       type: Date,
       required: true,
       index: true
+    },
+    wasScheduled: {
+      type: Boolean,
+      default: false
     },
     moreInfoEnabled: {
       type: Boolean,
@@ -64,6 +69,47 @@ const inviteSchema = new mongoose.Schema(
     creatorIpHash: {
       type: String,
       default: ""
+    },
+
+    // ----- Optional creator email notifications (double opt-in) -----
+    // These fields are sensitive and are never returned by the public API;
+    // see toPublicInvite() in the invites route.
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 254,
+      default: ""
+    },
+    emailConfirmTokenHash: {
+      type: String,
+      default: ""
+    },
+    emailConfirmExpiresAt: {
+      type: Date,
+      default: null
+    },
+    emailConfirmedAt: {
+      type: Date,
+      default: null
+    },
+    // Reusable across confirm/live/expired emails, so stored as a low-sensitivity
+    // plaintext token (never exposed by the public API) rather than a hash.
+    unsubToken: {
+      type: String,
+      default: ""
+    },
+    unsubscribedAt: {
+      type: Date,
+      default: null
+    },
+    liveEmailSentAt: {
+      type: Date,
+      default: null
+    },
+    expiredEmailSentAt: {
+      type: Date,
+      default: null
     }
   },
   {

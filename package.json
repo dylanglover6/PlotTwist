@@ -12,7 +12,7 @@
     "start": "npm run start --workspace server",
     "start:prod": "cross-env NODE_ENV=production node server/src/index.js",
     "serve": "npm run build && npm run start:prod",
-    "test": "npm run test --workspace client",
+    "test": "npm run test --workspace client && npm run test --workspace server",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
