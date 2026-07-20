@@ -7,6 +7,8 @@ import { connectDB } from "./config/db.js";
 import healthRouter from "./routes/health.js";
 import imageRouter from "./routes/images.js";
 import inviteRouter from "./routes/invites.js";
+import emailRouter from "./routes/email.js";
+import { startNotificationCron, safeSweep } from "./jobs/notifications.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === "production";
@@ -18,7 +20,17 @@ dotenv.config({
 
 const app = express();
 const port = process.env.PORT || 5000;
+// In production the process sits behind Caddy on the same host, so bind to
+// loopback by default — the app port is never exposed off-box. Override with
+// HOST (e.g. 0.0.0.0) for container/other setups.
+const host = process.env.HOST || (isProduction ? "127.0.0.1" : "0.0.0.0");
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+
+// Behind a hosting proxy in production so req.ip (used for rate limiting and
+// the creator IP hash) reflects the real client, not the proxy.
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
 
 app.use(
   cors({
@@ -38,6 +50,22 @@ if (!isProduction) {
 app.use("/api/health", healthRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/invites", inviteRouter);
+app.use("/api/email", emailRouter);
+
+// Protected trigger for the notification sweep, for hosts that sleep idle
+// instances and drive it from an external cron. Guarded by TASKS_SECRET.
+app.post("/api/tasks/notifications", async (req, res, next) => {
+  try {
+    const secret = process.env.TASKS_SECRET;
+    if (!secret || req.get("x-tasks-secret") !== secret) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const result = await safeSweep();
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // In production, serve the built client so the whole app deploys as one
 // service. API routes are registered above; everything else falls back to the
@@ -73,9 +101,10 @@ app.use((error, _req, res, _next) => {
 async function startServer() {
   try {
     await connectDB(process.env.MONGODB_URI);
-    app.listen(port, () => {
-      console.log(`Plot Twist API listening on port ${port}`);
+    app.listen(port, host, () => {
+      console.log(`Plot Twist API listening on ${host}:${port}`);
     });
+    startNotificationCron();
   } catch (error) {
     console.error("Failed to start server:", error.message);
     process.exit(1);

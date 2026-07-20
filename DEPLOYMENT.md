@@ -1,7 +1,15 @@
 # Deployment & Publishing Plan
 
+> **Production target:** Plot Twist runs on the shared **Azure VM**, reverse-proxied
+> by Caddy at **https://plottwist.dylanglover.com**, per the team's unified
+> deployment plan. The concrete VM runbook lives in [deploy/README.md](deploy/README.md);
+> the artifacts (systemd unit, redeploy script, prod env template) are in
+> [deploy/](deploy/). The earlier PaaS options (Render / Railway / Fly) below are
+> **superseded** and kept only as a generic reference — the single-service model,
+> build commands, and env vars still apply everywhere.
+
 Plot Twist ships as a **single Node service**: in production the Express server
-serves the built React SPA *and* the `/api` routes from one process, so there
+serves the built React SPA _and_ the `/api` routes from one process, so there
 is no separate frontend host and no CORS/proxy juggling between origins.
 
 ```
@@ -32,13 +40,29 @@ npm run serve        # build + start:prod
 - Deploy the **whole repo** (client and server stay siblings): the server
   resolves the build at `../../client/dist` relative to `server/src/`.
 
-### On a PaaS (Render / Railway / Fly.io / Heroku-style)
+### Production: Azure VM behind Caddy
 
-| Setting | Value |
-|---|---|
+The app runs under systemd as the `plottwist` user and listens on
+`127.0.0.1:3000` (loopback only). Caddy — configured in the **Portfolio** repo,
+not here — fronts it at `https://plottwist.dylanglover.com` and handles HTTPS.
+Full steps and the artifacts (`plottwist.service`, `redeploy.sh`,
+`plottwist.env.example`) are in [deploy/](deploy/). Key points:
+
+- Install **including devDependencies** (`vite`/`tailwind` build the client;
+  `cross-env` runs `start:prod`) — do not set `NODE_ENV=production` for
+  `npm install`.
+- The build must run on the box (`npm run build`) so `client/dist` exists next
+  to the server.
+- Redeploy: `deploy/redeploy.sh` (`git pull && npm install && npm run build &&
+systemctl restart plottwist`).
+
+### On a generic PaaS (superseded — Render / Railway / Fly.io)
+
+| Setting       | Value                          |
+| ------------- | ------------------------------ |
 | Build command | `npm install && npm run build` |
-| Start command | `npm run start:prod` |
-| Node version | 20+ (developed on 22) |
+| Start command | `npm run start:prod`           |
+| Node version  | 20+ (developed on 22)          |
 
 Most platforms set `NODE_ENV=production` and `PORT` automatically; `start:prod`
 sets `NODE_ENV` explicitly so it works even where the platform doesn't.
@@ -48,73 +72,92 @@ sets `NODE_ENV` explicitly so it works even where the platform doesn't.
 Set these in the host's dashboard (never commit `server/.env` — it is
 gitignored). See [server/.env.example](server/.env.example).
 
-| Var | Required | Purpose |
-|---|---|---|
-| `MONGODB_URI` | yes | MongoDB Atlas connection string. |
-| `CLIENT_ORIGIN` | yes | Your deployed origin, for the CORS allow-list. Same-origin in prod, but keep it set. |
-| `UNSPLASH_ACCESS_KEY` | optional | Enables image search; without it search returns an empty set with a message. Stays server-side only. |
-| `PORT` | usually auto | Port Express listens on (platform-provided). |
-| `NODE_ENV` | yes (`production`) | Enables static serving of the client build. Set by `start:prod`. |
+| Var                   | Required           | Purpose                                                                                              |
+| --------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`         | yes                | MongoDB Atlas connection string.                                                                     |
+| `CLIENT_ORIGIN`       | yes                | Deployed origin for the CORS allow-list. On the VM: `https://plottwist.dylanglover.com`.             |
+| `UNSPLASH_ACCESS_KEY` | optional           | Enables image search; without it search returns an empty set with a message. Stays server-side only. |
+| `PORT`                | yes                | Port Express listens on. On the VM: `3000` (Caddy proxies to it).                                    |
+| `HOST`                | optional           | Bind address. Defaults to `127.0.0.1` in production (loopback, behind Caddy), `0.0.0.0` in dev.      |
+| `NODE_ENV`            | yes (`production`) | Enables static serving of the client build. Set by `start:prod`.                                     |
+| `RESEND_API_KEY`      | optional           | Enables creator email notifications. Unset → email is a logged no-op; the app still works.           |
+| `EMAIL_FROM`          | with email         | From header for outgoing mail (use a verified domain in production).                                 |
+| `APP_URL`             | with email         | Public base URL used to build confirm/unsubscribe/reveal links inside emails.                        |
+| `TASKS_SECRET`        | optional           | Shared secret for `POST /api/tasks/notifications`, so an external cron can drive the sweep.          |
 
-## Recommended hosting
+See [EMAIL_PLAN.md](EMAIL_PLAN.md) for the full email-notifications design.
 
-- **App:** any Node host that runs a long-lived process (Render Web Service,
-  Railway, Fly.io, or a VPS). A single instance is enough.
-- **Database:** MongoDB Atlas (managed). The app only needs one database.
+## Hosting
+
+- **App:** the shared **Azure VM** (Ubuntu, B1s), one long-lived Node process
+  under systemd behind Caddy. See [deploy/README.md](deploy/README.md).
+- **Database:** MongoDB Atlas **M0 (free)** — allow-list the VM's public IP
+  (not `0.0.0.0/0`).
 - **Images:** an Unsplash developer application for `UNSPLASH_ACCESS_KEY`.
 
-A static-only host (Netlify/Vercel static) is **not** sufficient on its own
-because the app needs the Express API and a database; if you use one of those
-platforms, run the server as a serverless/Node function or use their Node
-service tier.
+The app needs the Express API and a database, so a static-only host
+(Netlify/Vercel static) is not sufficient on its own — which is why it lives on
+the VM rather than a static tier.
 
 ## Dependencies and why they're here
 
 ### Server runtime
 
-| Package | Why |
-|---|---|
-| `express` | HTTP server, routing, static file serving, error middleware. |
-| `mongoose` | MongoDB ODM; the `Invite` schema also enforces field validation. |
-| `cors` | Restricts which browser origin may call the API (`CLIENT_ORIGIN`). |
-| `dotenv` | Loads `server/.env` in local dev (prod uses real env vars). |
+| Package              | Why                                                                |
+| -------------------- | ------------------------------------------------------------------ |
+| `express`            | HTTP server, routing, static file serving, error middleware.       |
+| `mongoose`           | MongoDB ODM; the `Invite` schema also enforces field validation.   |
+| `cors`               | Restricts which browser origin may call the API (`CLIENT_ORIGIN`). |
+| `dotenv`             | Loads `server/.env` in local dev (prod uses real env vars).        |
+| `resend`             | Sends the creator notification emails (confirm / live / expired).  |
+| `express-rate-limit` | Rate-limits invite creation and the email action endpoints.        |
+| `node-cron`          | Runs the in-process notification sweep every minute.               |
 
 ### Client runtime
 
-| Package | Why |
-|---|---|
-| `react`, `react-dom` | UI framework. |
-| `react-router-dom` | Client-side routing (`/`, `/create`, `/created/:id`, `/t/:id`, `/t/:id/more`). |
-| `lucide-react` | Icon set used across the UI. |
+| Package              | Why                                                                            |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `react`, `react-dom` | UI framework.                                                                  |
+| `react-router-dom`   | Client-side routing (`/`, `/create`, `/created/:id`, `/t/:id`, `/t/:id/more`). |
+| `lucide-react`       | Icon set used across the UI.                                                   |
 
 ### Build & dev tooling
 
-| Package | Why |
-|---|---|
-| `vite`, `@vitejs/plugin-react` | Dev server (with `/api` proxy) and production bundler. |
+| Package                                  | Why                                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `vite`, `@vitejs/plugin-react`           | Dev server (with `/api` proxy) and production bundler.                           |
 | `tailwindcss`, `postcss`, `autoprefixer` | Styling; design tokens live in `styles.css`, wired through `tailwind.config.js`. |
-| `nodemon` | Auto-restarts the server in dev. |
-| `concurrently` | Runs client + server together via `npm run dev`. |
-| `cross-env` | Cross-platform `NODE_ENV=production` for the prod start script. |
+| `nodemon`                                | Auto-restarts the server in dev.                                                 |
+| `concurrently`                           | Runs client + server together via `npm run dev`.                                 |
+| `cross-env`                              | Cross-platform `NODE_ENV=production` for the prod start script.                  |
 
 ### Quality tooling
 
-| Package | Why |
-|---|---|
-| `eslint` + React plugins, `@eslint/js`, `globals` | Linting for both workspaces (flat config). |
-| `prettier`, `eslint-config-prettier` | Formatting; ESLint defers stylistic rules to Prettier. |
-| `vitest` | Unit tests (e.g. the reveal-state boundary tests). |
+| Package                                           | Why                                                                              |
+| ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `eslint` + React plugins, `@eslint/js`, `globals` | Linting for both workspaces (flat config).                                       |
+| `prettier`, `eslint-config-prettier`              | Formatting; ESLint defers stylistic rules to Prettier.                           |
+| `vitest`                                          | Unit + integration tests (reveal-state, tokens, serializer, notification sweep). |
+| `mongodb-memory-server`                           | Ephemeral MongoDB for the server integration tests (dev-only).                   |
 
-> Note: Playwright / axe-core / mongodb-memory-server were used ad hoc during
-> the polish pass for visual, accessibility, and production-serve verification.
-> They were installed transiently and are **not** project dependencies.
+> Note: Playwright and axe-core were used ad hoc during the polish pass for
+> visual, accessibility, and production-serve verification. They were installed
+> transiently and are **not** project dependencies.
 
-## Pre-publish checklist (already verified on the `polish` branch)
+## Pre-publish checklist
 
-- [x] `npm run lint` clean, `npm test` green (13 tests), `npm run build` succeeds.
+Verified in the repo:
+
+- [x] `npm run lint` clean, `npm test` green, `npm run build` succeeds.
 - [x] Production server verified: `/` and `/t/:id` serve the SPA, `/api/*` stays JSON.
-- [x] No secrets reach the client bundle; `server/.env` is gitignored.
+- [x] No secrets reach the client bundle; `.env` and `deploy/*.env` are gitignored.
 - [x] Meta tags + favicon + `og-image.png` present for link previews.
 - [x] axe-core: 0 WCAG 2.1 A/AA violations across all pages.
-- [ ] Set the production env vars in your host.
-- [ ] Point `CLIENT_ORIGIN` at your deployed domain.
+
+On the VM (see [deploy/README.md](deploy/README.md)):
+
+- [ ] Node 22 installed (NodeSource); `plottwist` user + `/opt/plottwist/.env` (chmod 600).
+- [ ] `MONGODB_URI` set; VM public IP allow-listed in Atlas.
+- [ ] `CLIENT_ORIGIN=https://plottwist.dylanglover.com`, `PORT=3000`.
+- [ ] `plottwist.service` enabled; `plottwist` A record resolves; Caddy block (Portfolio repo) reloaded.
+- [ ] Smoke test: full invite lifecycle, `/api/*` JSON, og:image preview renders.

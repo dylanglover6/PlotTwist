@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Mobile-first MERN starter for Plot Twist.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
     "dev:client": "npm run dev --workspace client",
@@ -12,7 +15,7 @@
     "start": "npm run start --workspace server",
     "start:prod": "cross-env NODE_ENV=production node server/src/index.js",
     "serve": "npm run build && npm run start:prod",
-    "test": "npm run test --workspace client",
+    "test": "npm run test --workspace client && npm run test --workspace server",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
