@@ -1,0 +1,19 @@
+# Plot Twist systemd unit for the shared Azure VM.
+# Install: sudo cp deploy/plottwist.service /etc/systemd/system/plottwist.service
+#          sudo systemctl daemon-reload && sudo systemctl enable --now plottwist
+[Unit]
+Description=Plot Twist (Express + SPA)
+After=network.target
+
+[Service]
+User=plottwist
+WorkingDirectory=/opt/plottwist/src
+EnvironmentFile=/opt/plottwist/.env
+ExecStart=/usr/bin/npm run start:prod
+Restart=on-failure
+RestartSec=5
+# Light hardening (safe for a plain Node process).
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -20,6 +20,10 @@ dotenv.config({
 
 const app = express();
 const port = process.env.PORT || 5000;
+// In production the process sits behind Caddy on the same host, so bind to
+// loopback by default — the app port is never exposed off-box. Override with
+// HOST (e.g. 0.0.0.0) for container/other setups.
+const host = process.env.HOST || (isProduction ? "127.0.0.1" : "0.0.0.0");
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
 // Behind a hosting proxy in production so req.ip (used for rate limiting and
@@ -97,8 +101,8 @@ app.use((error, _req, res, _next) => {
 async function startServer() {
   try {
     await connectDB(process.env.MONGODB_URI);
-    app.listen(port, () => {
-      console.log(`Plot Twist API listening on port ${port}`);
+    app.listen(port, host, () => {
+      console.log(`Plot Twist API listening on ${host}:${port}`);
     });
     startNotificationCron();
   } catch (error) {

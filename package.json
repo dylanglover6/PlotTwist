@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Mobile-first MERN starter for Plot Twist.",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
     "dev:client": "npm run dev --workspace client",
