@@ -1,12 +1,11 @@
-# Deployment & Publishing Plan
+# Deployment
 
-> **Production target:** Plot Twist runs on the shared **Azure VM**, reverse-proxied
-> by Caddy at **https://plottwist.dylanglover.com**, per the team's unified
-> deployment plan. The concrete VM runbook lives in [deploy/README.md](deploy/README.md);
-> the artifacts (systemd unit, redeploy script, prod env template) are in
-> [deploy/](deploy/). The earlier PaaS options (Render / Railway / Fly) below are
-> **superseded** and kept only as a generic reference — the single-service model,
-> build commands, and env vars still apply everywhere.
+> **Production:** Plot Twist runs on an **Azure VM**, reverse-proxied by Caddy at
+> **https://plottwist.dylanglover.com**. The VM runbook is in
+> [deploy/README.md](deploy/README.md) and the artifacts (systemd unit, redeploy
+> script, prod env template) are in [deploy/](deploy/). It also runs on any
+> generic Node PaaS (Render / Railway / Fly) — the single-service model, build
+> commands, and env vars are the same everywhere.
 
 Plot Twist ships as a **single Node service**: in production the Express server
 serves the built React SPA _and_ the `/api` routes from one process, so there
@@ -43,10 +42,11 @@ npm run serve        # build + start:prod
 ### Production: Azure VM behind Caddy
 
 The app runs under systemd as the `plottwist` user and listens on
-`127.0.0.1:3000` (loopback only). Caddy — configured in the **Portfolio** repo,
-not here — fronts it at `https://plottwist.dylanglover.com` and handles HTTPS.
-Full steps and the artifacts (`plottwist.service`, `redeploy.sh`,
-`plottwist.env.example`) are in [deploy/](deploy/). Key points:
+`127.0.0.1:3000` (loopback only). Caddy fronts it at
+`https://plottwist.dylanglover.com` and handles HTTPS; the reverse-proxy config
+lives on the host, outside this repo. Full steps and the artifacts
+(`plottwist.service`, `redeploy.sh`, `plottwist.env.example`) are in
+[deploy/](deploy/). Key points:
 
 - Install **including devDependencies** (`vite`/`tailwind` build the client;
   `cross-env` runs `start:prod`) — do not set `NODE_ENV=production` for
@@ -56,7 +56,7 @@ Full steps and the artifacts (`plottwist.service`, `redeploy.sh`,
 - Redeploy: `deploy/redeploy.sh` (`git pull && npm install && npm run build &&
 systemctl restart plottwist`).
 
-### On a generic PaaS (superseded — Render / Railway / Fly.io)
+### On a generic PaaS (Render / Railway / Fly.io)
 
 | Setting       | Value                          |
 | ------------- | ------------------------------ |
@@ -89,8 +89,8 @@ See [EMAIL_PLAN.md](EMAIL_PLAN.md) for the full email-notifications design.
 
 ## Hosting
 
-- **App:** the shared **Azure VM** (Ubuntu, B1s), one long-lived Node process
-  under systemd behind Caddy. See [deploy/README.md](deploy/README.md).
+- **App:** an **Azure VM** (Ubuntu, B1s), one long-lived Node process under
+  systemd behind Caddy. See [deploy/README.md](deploy/README.md).
 - **Database:** MongoDB Atlas **M0 (free)** — allow-list the VM's public IP
   (not `0.0.0.0/0`).
 - **Images:** an Unsplash developer application for `UNSPLASH_ACCESS_KEY`.
@@ -159,5 +159,5 @@ On the VM (see [deploy/README.md](deploy/README.md)):
 - [ ] Node 22 installed (NodeSource); `plottwist` user + `/opt/plottwist/.env` (chmod 600).
 - [ ] `MONGODB_URI` set; VM public IP allow-listed in Atlas.
 - [ ] `CLIENT_ORIGIN=https://plottwist.dylanglover.com`, `PORT=3000`.
-- [ ] `plottwist.service` enabled; `plottwist` A record resolves; Caddy block (Portfolio repo) reloaded.
+- [ ] `plottwist.service` enabled; `plottwist` A record resolves; Caddy reloaded.
 - [ ] Smoke test: full invite lifecycle, `/api/*` JSON, og:image preview renders.

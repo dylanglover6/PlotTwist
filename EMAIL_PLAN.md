@@ -1,10 +1,13 @@
-# Email Notifications — Plan
+# Email Notifications
+
+How Plot Twist's optional creator email updates work — the messages, the
+scheduling model, and the security/anti-abuse design.
 
 Optional email updates for the **creator** of a Plot Twist. Providing an email
 is never required; it's a convenience for people who want to be told when things
 happen to their invite.
 
-## The three emails
+## The emails
 
 | #   | Email                                       | When it fires                                                     |
 | --- | ------------------------------------------- | ----------------------------------------------------------------- |
@@ -13,8 +16,7 @@ happen to their invite.
 | 3   | **"Your Plot Twist is live"**               | At `unlockAt` — only for **scheduled** invites, only if confirmed |
 | 4   | **"Your Plot Twist expired"**               | At `expiresAt` — only if confirmed                                |
 
-> The requested "send a link after creating it / live / expired" maps to emails
-> 2–4. The link is delivered **after confirmation** (email 2), not in the first
+> The link is delivered **after confirmation** (email 2), not in the first
 > email — see the anti-abuse note below. The creator also always sees the link
 > on-screen on the confirmation page, so nothing is gated behind email.
 
@@ -114,15 +116,3 @@ The in-process cron only fires while the Node process is awake. On hosts that
 **sleep** idle free instances, drive the sweep from an external cron hitting
 `POST /api/tasks/notifications` with the `TASKS_SECRET`, or deploy somewhere
 always-on.
-
-## Implementation status
-
-- [x] Plan
-- [x] Dependencies (`resend`, `express-rate-limit`, `node-cron`)
-- [x] Email module (client, templates, tokens)
-- [x] Model fields
-- [x] Create-route: confirmation email, sanitized responses, rate limiting
-- [x] Confirm + unsubscribe endpoints
-- [x] Notification sweep + cron + protected trigger
-- [x] Optional email field in the create form
-- [x] Env docs, lint/build, verification
