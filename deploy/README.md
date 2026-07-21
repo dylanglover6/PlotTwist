@@ -1,18 +1,16 @@
-# Deploying Plot Twist to the shared Azure VM
+# Deploying Plot Twist to an Azure VM
 
-Production for Plot Twist is the shared **Azure VM**, reverse-proxied by Caddy at
-**https://plottwist.dylanglover.com** (see the team's unified deployment plan).
-It co-hosts on the same box as the Portfolio app; the single-service model
-(Express serving the built React SPA + the API) is unchanged — see
-[../DEPLOYMENT.md](../DEPLOYMENT.md).
+Production runs on an **Azure VM**, reverse-proxied by Caddy at
+**https://plottwist.dylanglover.com**, as a single Node service (Express serving
+the built React SPA + the API) — see [../DEPLOYMENT.md](../DEPLOYMENT.md).
 
-> **Boundaries (shared VM):** the `/etc/caddy/Caddyfile` is owned by the
-> **Portfolio** repo — do **not** add Caddy config from here. This repo only
-> provides its app, systemd unit, and env. Deploy **after** the Portfolio base
-> setup exists (it provisions the VM, Caddy, and the public IP).
+> This repo provides the app, its systemd unit, and its env. The Caddy
+> reverse-proxy config lives on the host, outside this repo — don't add Caddy
+> config here.
 
-Prerequisites handled outside this repo: the VM exists, Node 22 is installed
-(NodeSource), Caddy is running, and the `plottwist` A record points at the VM IP.
+Prerequisites handled on the host before these steps: the VM exists, Node 22 is
+installed (NodeSource), Caddy is running, and the `plottwist` A record points at
+the VM's public IP.
 
 ## 1. External services
 
@@ -58,7 +56,7 @@ sudo systemctl status plottwist          # verify it's running
 
 The app listens on `127.0.0.1:3000` (loopback only — Caddy reaches it on-box;
 the port is never exposed publicly). Caddy's `plottwist.dylanglover.com` block
-(in the Portfolio repo) proxies to it, and HTTPS is automatic once DNS resolves.
+proxies to it, and HTTPS is automatic once DNS resolves.
 
 ## 5. Smoke test
 
