@@ -14,7 +14,7 @@ const confirmWindowMs = 24 * 60 * 60 * 1000;
 // Whitelist of fields safe to return to any client. Everything else — email,
 // tokens, send flags, creatorIpHash — stays server-side only.
 const publicFields = [
-  "_id",
+  "shareId",
   "hostName",
   "teaserMessage",
   "revealTitle",
@@ -114,7 +114,7 @@ router.post("/", createLimiter, async (req, res, next) => {
       };
     }
 
-    const invite = await Invite.create({
+    const invite = await createWithUniqueShareId({
       hostName: req.body.hostName,
       teaserMessage: req.body.teaserMessage,
       revealTitle: req.body.revealTitle,
@@ -146,7 +146,9 @@ router.post("/", createLimiter, async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const invite = await Invite.findById(req.params.id).lean();
+    // Look up by the unguessable shareId only — never by raw ObjectId, so the
+    // endpoint can't be used to enumerate invites.
+    const invite = await Invite.findOne({ shareId: req.params.id }).lean();
 
     if (!invite) {
       return res.status(404).json({ message: "Invite not found" });
@@ -157,6 +159,26 @@ router.get("/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+// Create an invite with a fresh random shareId, regenerating on the (astronomically
+// unlikely) unique-index collision.
+async function createWithUniqueShareId(data, attempts = 3) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await Invite.create({ ...data, shareId: generateShareId() });
+    } catch (error) {
+      const isDuplicateShareId = error?.code === 11000 && error?.keyPattern?.shareId;
+      if (isDuplicateShareId && attempt < attempts) continue;
+      throw error;
+    }
+  }
+  return undefined;
+}
+
+function generateShareId() {
+  // 12 bytes -> 16 URL-safe chars (~96 bits of entropy).
+  return crypto.randomBytes(12).toString("base64url");
+}
 
 // Returns a valid expiration window in hours, the default when none was sent,
 // or null when the caller sent something invalid (so the route can 400).

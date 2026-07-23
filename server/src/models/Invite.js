@@ -2,6 +2,15 @@ import mongoose from "mongoose";
 
 const inviteSchema = new mongoose.Schema(
   {
+    // Unguessable public identifier used in share/reveal URLs (/t/:shareId), so
+    // links can't be enumerated the way sequential Mongo ObjectIds can. Set at
+    // creation; the raw _id is never exposed by the public API.
+    shareId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true
+    },
     hostName: {
       type: String,
       required: true,

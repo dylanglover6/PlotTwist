@@ -100,7 +100,7 @@ If this wasn't you, you can safely ignore this email — no further messages wil
 
 // 2. Confirmed — now safe to include the reveal link + unsubscribe.
 export function confirmedEmail(invite, unsubToken) {
-  const link = revealUrl(invite._id);
+  const link = revealUrl(invite.shareId);
   const scheduled =
     new Date(invite.unlockAt).getTime() > new Date(invite.createdAt || Date.now()).getTime();
   return {
@@ -134,7 +134,7 @@ Unsubscribe: ${unsubscribeUrl(invite._id, unsubToken)}`,
 
 // 3. Went live (scheduled invites only).
 export function liveEmail(invite, unsubToken) {
-  const link = revealUrl(invite._id);
+  const link = revealUrl(invite.shareId);
   return {
     subject: "Your Plot Twist is live 🎉",
     text: `Your Plot Twist "${invite.revealTitle}" is now live — recipients can reveal it.

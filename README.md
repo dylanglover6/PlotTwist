@@ -9,16 +9,26 @@ the surprise is gone.
 ## Features
 
 - 🎁 **Scratch-to-reveal** — a canvas overlay you swipe away, with the image blurring into
-  focus underneath.
+  focus and a full-screen confetti burst on reveal.
 - ⏳ **Time-based lifecycle** — every invite is `locked` → `revealed` → `expired`, derived
   purely from `unlockAt` / `expiresAt` (never stored as state).
-- 📅 **Add to calendar** — generates an `.ics` file for the reveal.
-- 🔎 **Image search** — pick a reveal photo from Unsplash, proxied server-side so the API
-  key never reaches the browser.
+- 📆 **Event date** — optional single day or date range, shown on the reveal and folded
+  into the calendar file.
+- 🎉 **Partiful integration** — attach a Partiful event link and guests get an "RSVP on
+  Partiful" button (validated server-side to a real `partiful.com` https URL).
+- 📄 **More Information page** — an optional second page for details/itinerary plus the
+  RSVP link, keeping the reveal itself minimal.
+- 📅 **Add to calendar** — generates an `.ics` file (all-day for event dates, with the
+  Partiful link attached).
+- 🔎 **Image search** — pick a reveal photo from Unsplash, proxied and rate-limited
+  server-side so the API key never reaches the browser.
 - 📨 **Optional email updates** — the creator can opt in (double opt-in) to be emailed a
   confirmation, their link, and notes when the twist goes live and expires.
 - 📱 **Native sharing** — Web Share API with a copy-to-clipboard fallback.
-- ♿ **Accessible** — 0 axe (WCAG 2.1 A/AA) violations across all pages.
+- 🎨 **Bold, mobile-first UI** — a dark, high-contrast "party invite" theme (Space Grotesk
+  display type, gradient accents, glassy cards) that respects `prefers-reduced-motion`.
+- ♿ **Accessibility-minded** — semantic landmarks, labeled form controls, keyboard
+  navigation, visible focus states, and reduced-motion fallbacks.
 
 ## Tech stack
 
@@ -54,7 +64,8 @@ npm run dev
 ```
 
 The React app runs on `http://localhost:5173` and proxies `/api` calls to the Express
-server on `http://localhost:5000`.
+server on `http://localhost:5050`. (Dev uses `5050` rather than `5000` because macOS's
+AirPlay Receiver occupies `5000`; production sets `PORT` explicitly.)
 
 ### Environment variables (`server/.env`)
 

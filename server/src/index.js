@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import helmet from "helmet";
 import { connectDB } from "./config/db.js";
 import healthRouter from "./routes/health.js";
 import imageRouter from "./routes/images.js";
@@ -19,7 +20,9 @@ dotenv.config({
 });
 
 const app = express();
-const port = process.env.PORT || 5000;
+// Dev default 5050 (matches the Vite proxy): macOS AirPlay Receiver holds 5000.
+// Production always sets PORT explicitly.
+const port = process.env.PORT || 5050;
 // In production the process sits behind Caddy on the same host, so bind to
 // loopback by default — the app port is never exposed off-box. Override with
 // HOST (e.g. 0.0.0.0) for container/other setups.
@@ -31,6 +34,30 @@ const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 if (isProduction) {
   app.set("trust proxy", 1);
 }
+
+// Security headers. The CSP allows only what the app actually loads: its own
+// bundle, inline styles (Tailwind/React style attributes), Google Fonts, and
+// Unsplash reveal images. `upgrade-insecure-requests` is disabled because TLS
+// is terminated at the reverse proxy (which also sets HSTS).
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
+        "img-src": ["'self'", "data:", "https://images.unsplash.com"],
+        "connect-src": ["'self'"],
+        "object-src": ["'none'"],
+        "base-uri": ["'self'"],
+        "frame-ancestors": ["'self'"],
+        "upgrade-insecure-requests": null
+      }
+    },
+    crossOriginResourcePolicy: { policy: "same-origin" }
+  })
+);
 
 app.use(
   cors({

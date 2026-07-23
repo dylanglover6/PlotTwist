@@ -13,7 +13,7 @@ export async function createInvite(payload) {
     throw new Error(data?.message || "Unable to create invite");
   }
 
-  if (!data?._id) {
+  if (!data?.shareId) {
     throw new Error("Invite was created, but the share link id was missing");
   }
 

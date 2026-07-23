@@ -5,6 +5,7 @@ import { normalizeDateOnly, normalizePartifulUrl, toPublicInvite } from "./invit
 function fullInvite(overrides = {}) {
   return {
     _id: "abc123",
+    shareId: "Xa9_pQ2r7bK4mn0Z",
     hostName: "Dylan",
     teaserMessage: "A surprise",
     revealTitle: "Tokyo!",
@@ -57,6 +58,12 @@ describe("toPublicInvite", () => {
     expect(out.hostName).toBe("Dylan");
     expect(out.imageUrl).toBe("https://img");
     expect(out.unlockAt).toBeInstanceOf(Date);
+  });
+
+  it("exposes shareId but never the raw _id", () => {
+    const out = toPublicInvite(fullInvite());
+    expect(out.shareId).toBe("Xa9_pQ2r7bK4mn0Z");
+    expect(out).not.toHaveProperty("_id");
   });
 
   it("flags emailPending only while an unconfirmed, non-unsubscribed email is set", () => {

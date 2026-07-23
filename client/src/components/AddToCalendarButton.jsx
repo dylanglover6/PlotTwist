@@ -29,7 +29,7 @@ function createCalendarHref(invite) {
     "VERSION:2.0",
     "PRODID:-//Plot Twist//Invite//EN",
     "BEGIN:VEVENT",
-    `UID:${invite._id || crypto.randomUUID()}@plot-twist`,
+    `UID:${invite.shareId || crypto.randomUUID()}@plot-twist`,
     `DTSTAMP:${formatCalendarDate(new Date())}`,
     ...buildDateLines(invite),
     `SUMMARY:${escapeCalendarText(title)}`,

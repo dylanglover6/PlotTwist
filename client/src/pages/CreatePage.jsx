@@ -99,9 +99,9 @@ export default function CreatePage() {
         email: form.email.trim()
       });
 
-      // MongoDB creates _id. We use it to build the confirmation page URL.
+      // shareId is the unguessable public token used in all share/reveal URLs.
       // emailPending tells the next page to show a "confirm your email" note.
-      navigate(`/created/${invite._id}`, {
+      navigate(`/created/${invite.shareId}`, {
         replace: true,
         state: { emailPending: invite.emailPending }
       });

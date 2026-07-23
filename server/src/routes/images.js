@@ -1,8 +1,20 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-router.get("/search", async (req, res, next) => {
+// Cap searches per IP so this public Unsplash proxy can't be used to burn the
+// upstream API quota. Generous enough for a host trying a few searches while
+// filling out the form.
+const searchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { results: [], message: "Too many image searches. Try again in a few minutes." }
+});
+
+router.get("/search", searchLimiter, async (req, res, next) => {
   try {
     const query = String(req.query.query || "").trim();
 

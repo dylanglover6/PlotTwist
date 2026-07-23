@@ -36,6 +36,7 @@ const HOUR = 60 * 60 * 1000;
 function confirmedLiveInvite(overrides = {}) {
   const now = Date.now();
   return {
+    shareId: `t-${Math.random().toString(36).slice(2, 12)}`,
     hostName: "Dylan",
     teaserMessage: "surprise",
     revealTitle: "Tokyo",

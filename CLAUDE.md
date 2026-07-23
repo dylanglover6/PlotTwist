@@ -13,7 +13,7 @@ Run all commands from the repo root. This is an npm workspaces monorepo (`client
 ```bash
 npm install            # installs deps for root + both workspaces
 npm run dev            # runs server (nodemon) + client (vite) concurrently
-npm run dev:server     # server only, http://localhost:5000
+npm run dev:server     # server only, http://localhost:5050
 npm run dev:client     # client only, http://localhost:5173
 npm run build          # production build of the client
 npm run start          # run the server with node (no watch)
