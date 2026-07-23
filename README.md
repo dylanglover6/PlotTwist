@@ -103,8 +103,8 @@ Email is off until a Resend key is present. To turn it on:
    invites get a "went live" email within ~a minute of unlocking, and an "expired" email
    after expiry (a `node-cron` sweep runs every minute).
 
-Design and anti-abuse details (double opt-in, token security, rate limiting) are in
-[`EMAIL_PLAN.md`](EMAIL_PLAN.md).
+The double opt-in flow, token handling, and per-IP rate limiting live in
+[`server/src/email/`](server/src/email/) and [`server/src/routes/email.js`](server/src/routes/email.js).
 
 ## Scripts
 

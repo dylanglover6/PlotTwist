@@ -85,8 +85,6 @@ gitignored). See [server/.env.example](server/.env.example).
 | `APP_URL`             | with email         | Public base URL used to build confirm/unsubscribe/reveal links inside emails.                        |
 | `TASKS_SECRET`        | optional           | Shared secret for `POST /api/tasks/notifications`, so an external cron can drive the sweep.          |
 
-See [EMAIL_PLAN.md](EMAIL_PLAN.md) for the full email-notifications design.
-
 ## Hosting
 
 - **App:** an **Azure VM** (Ubuntu, B1s), one long-lived Node process under
