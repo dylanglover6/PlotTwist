@@ -20,11 +20,30 @@ const inviteSchema = new mongoose.Schema(
       trim: true,
       maxlength: 140
     },
+    // Shown on the second ("More Information") page, not on the reveal itself.
     description: {
       type: String,
       trim: true,
       maxlength: 2000,
       default: ""
+    },
+    // Optional event date, stored as plain "YYYY-MM-DD" strings so a calendar
+    // day never shifts across timezones. A range uses both start + end.
+    eventStartDate: {
+      type: String,
+      trim: true,
+      maxlength: 10,
+      default: ""
+    },
+    eventEndDate: {
+      type: String,
+      trim: true,
+      maxlength: 10,
+      default: ""
+    },
+    eventIsRange: {
+      type: Boolean,
+      default: false
     },
     imageUrl: {
       type: String,
@@ -34,6 +53,15 @@ const inviteSchema = new mongoose.Schema(
     imageAlt: {
       type: String,
       trim: true,
+      default: ""
+    },
+    // Optional Partiful event link. Recipients get an "RSVP on Partiful" button
+    // after the reveal. Validated in the invites route (https + partiful host)
+    // before it ever reaches here.
+    partifulUrl: {
+      type: String,
+      trim: true,
+      maxlength: 400,
       default: ""
     },
     unlockAt: {
@@ -49,22 +77,6 @@ const inviteSchema = new mongoose.Schema(
     wasScheduled: {
       type: Boolean,
       default: false
-    },
-    moreInfoEnabled: {
-      type: Boolean,
-      default: false
-    },
-    moreInfoTitle: {
-      type: String,
-      trim: true,
-      maxlength: 140,
-      default: ""
-    },
-    moreInfoDescription: {
-      type: String,
-      trim: true,
-      maxlength: 3000,
-      default: ""
     },
     creatorIpHash: {
       type: String,

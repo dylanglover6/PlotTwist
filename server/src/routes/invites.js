@@ -21,11 +21,12 @@ const publicFields = [
   "description",
   "imageUrl",
   "imageAlt",
+  "partifulUrl",
+  "eventStartDate",
+  "eventEndDate",
+  "eventIsRange",
   "unlockAt",
   "expiresAt",
-  "moreInfoEnabled",
-  "moreInfoTitle",
-  "moreInfoDescription",
   "createdAt",
   "updatedAt"
 ];
@@ -70,6 +71,28 @@ router.post("/", createLimiter, async (req, res, next) => {
     const expiresAt = new Date(unlockAt.getTime() + expirationHours * 60 * 60 * 1000);
     const wasScheduled = unlockAt.getTime() > now.getTime() + 1000;
 
+    // Optional Partiful link: normalize + validate (empty is fine; a bad or
+    // non-Partiful/unsafe URL is a 400 so we never store a junk/hostile link).
+    const partifulUrl = normalizePartifulUrl(req.body.partifulUrl);
+    if (partifulUrl === null) {
+      return res.status(400).json({
+        message: "Enter a valid Partiful link (e.g. https://partiful.com/e/...)."
+      });
+    }
+
+    // Optional event date (single day or a range). Empty is fine; anything that
+    // isn't a real YYYY-MM-DD, or an end before the start, is a 400.
+    const eventStartDate = normalizeDateOnly(req.body.eventStartDate);
+    const rawEnd = normalizeDateOnly(req.body.eventEndDate);
+    if (eventStartDate === null || rawEnd === null) {
+      return res.status(400).json({ message: "Enter a valid event date (YYYY-MM-DD)." });
+    }
+    const eventIsRange = Boolean(req.body.eventIsRange) && Boolean(eventStartDate) && Boolean(rawEnd);
+    const eventEndDate = eventIsRange ? rawEnd : "";
+    if (eventIsRange && eventEndDate < eventStartDate) {
+      return res.status(400).json({ message: "The event end date must be on or after the start." });
+    }
+
     // Optional creator email: validate server-side and set up double opt-in.
     let emailData = {};
     let confirmToken = null;
@@ -98,12 +121,13 @@ router.post("/", createLimiter, async (req, res, next) => {
       description: req.body.description,
       imageUrl: req.body.imageUrl,
       imageAlt: req.body.imageAlt,
+      partifulUrl,
+      eventStartDate,
+      eventEndDate,
+      eventIsRange,
       unlockAt,
       expiresAt,
       wasScheduled,
-      moreInfoEnabled: Boolean(req.body.moreInfoEnabled),
-      moreInfoTitle: req.body.moreInfoTitle,
-      moreInfoDescription: req.body.moreInfoDescription,
       creatorIpHash: hashIp(req.ip),
       ...emailData
     });
@@ -148,6 +172,56 @@ function resolveExpirationHours(raw) {
   }
 
   return hours;
+}
+
+// Returns "" for no link, a normalized https URL for a valid Partiful link, or
+// null when the caller sent something that isn't a safe Partiful URL (so the
+// route can 400). Guards the protocol so javascript:/data: links can't be stored.
+export function normalizePartifulUrl(raw) {
+  if (raw === undefined || raw === null) return "";
+  const trimmed = String(raw).trim();
+  if (!trimmed) return "";
+
+  let url;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+
+  const host = url.hostname.toLowerCase();
+  const isPartiful =
+    host === "partiful.com" || host.endsWith(".partiful.com") || host === "prtf.co";
+  if (!isPartiful) return null;
+
+  // Store canonical https; drop any credentials/hash noise but keep the path/query.
+  url.protocol = "https:";
+  url.username = "";
+  url.password = "";
+  return url.toString();
+}
+
+// Returns "" for no date, the "YYYY-MM-DD" string for a real calendar date, or
+// null when the caller sent something that isn't a valid date (so the route can
+// 400). Rejects impossible dates like 2026-02-31 by round-tripping through Date.
+export function normalizeDateOnly(raw) {
+  if (raw === undefined || raw === null) return "";
+  const trimmed = String(raw).trim();
+  if (!trimmed) return "";
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (!match) return null;
+
+  const [, y, m, d] = match;
+  const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+  const roundTrips =
+    date.getUTCFullYear() === Number(y) &&
+    date.getUTCMonth() === Number(m) - 1 &&
+    date.getUTCDate() === Number(d);
+
+  return roundTrips ? trimmed : null;
 }
 
 function hashIp(ip = "") {

@@ -53,13 +53,15 @@ export default function CountdownTimer({ className = "", onComplete, targetDate 
     >
       {units.map(([label, value]) => (
         <div
-          className={`rounded-2xl bg-white/10 px-2 py-3 ${
+          className={`rounded-2xl border border-white/10 bg-white/[0.06] px-2 py-3 ${
             isFinalCountdown && label === "Seconds" ? "countdown-final__seconds" : ""
           }`}
           key={label}
         >
-          <strong className="block text-2xl leading-none">{String(value).padStart(2, "0")}</strong>
-          <span className="mt-1 block text-[0.68rem] font-bold uppercase text-orange-100">
+          <strong className="block font-display text-2xl leading-none">
+            {String(value).padStart(2, "0")}
+          </strong>
+          <span className="mt-1 block text-[0.68rem] font-bold uppercase tracking-wide text-white/55">
             {label}
           </span>
         </div>

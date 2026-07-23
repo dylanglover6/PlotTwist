@@ -3,12 +3,14 @@ import { Link, useParams } from "react-router-dom";
 import { LockKeyhole, Sparkles } from "lucide-react";
 import AddToCalendarButton from "../components/AddToCalendarButton.jsx";
 import CountdownLabel from "../components/CountdownLabel.jsx";
+import Footer from "../components/Footer.jsx";
 import CountdownTimer from "../components/CountdownTimer.jsx";
 import ParticleBurst from "../components/ParticleBurst.jsx";
 import RevealImage from "../components/RevealImage.jsx";
 import ScratchReveal from "../components/ScratchReveal.jsx";
 import { useInvite } from "../hooks/useInvite.js";
 import { getRevealState } from "../utils/revealState.js";
+import { formatEventDate } from "../utils/time.js";
 
 export default function RevealPage() {
   // This reads the invite id from /t/:id.
@@ -99,20 +101,26 @@ export default function RevealPage() {
     );
   }
 
+  // The reveal itself stays minimal — just the title and, if the host added
+  // one, the event date. Everything else (details + Partiful) lives one tap
+  // away on the More Information page.
+  const eventLabel = formatEventDate(invite.eventStartDate, invite.eventEndDate, invite.eventIsRange);
+  const hasMoreInfo = Boolean(invite.description || invite.partifulUrl);
+
   return (
-    <main className="mobile-page bg-reveal text-white">
-      <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between gap-6">
+    <main className="mobile-page flex flex-col bg-reveal text-white">
+      <section className="flex flex-1 flex-col justify-between gap-6">
         <header className="pt-2 text-center">
-          <p className="text-sm font-bold uppercase text-orange-200">Plot Twist</p>
-          <h1 className="mx-auto mt-2 max-w-sm text-4xl font-black leading-none tracking-normal">
-            {invite.hostName} sent you a Plot Twist!
+          <p className="eyebrow">Plot Twist</p>
+          <h1 className="mx-auto mt-2 max-w-sm font-display text-4xl font-bold leading-[1.02] tracking-tight">
+            {invite.hostName} sent you a <span className="display-gradient">Plot Twist!</span>
           </h1>
         </header>
 
         <div>
-          <div className="relative overflow-hidden rounded-card border border-white/10 bg-white/10 shadow-glow backdrop-blur">
+          <div className="relative overflow-hidden rounded-card border border-white/10 bg-white/[0.06] shadow-glow backdrop-blur">
             <ScratchReveal
-              className="aspect-[4/5] bg-slate-900"
+              className="aspect-[4/5] bg-void"
               brushSize={62}
               coverSubtitle="Swipe to Reveal"
               coverTitle={invite.teaserMessage}
@@ -132,14 +140,17 @@ export default function RevealPage() {
                     alt={invite.imageAlt || invite.revealTitle}
                     sparklesSize={56}
                   />
-                  <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center">
-                    <div>
-                      <h1 className="text-4xl font-black leading-none tracking-normal">
+                  <div className="absolute inset-0 grid place-items-center p-5 text-center">
+                    {/* Translucent, blurred glass with a purple shade — the
+                        image still shows through, and a soft text-shadow keeps
+                        the title/date legible over any reveal image. */}
+                    <div className="max-w-full rounded-3xl bg-[#3a1180]/40 px-6 py-5 shadow-xl shadow-black/40 ring-1 ring-white/15 backdrop-blur-lg">
+                      <h1 className="font-display text-4xl font-bold leading-none tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]">
                         {invite.revealTitle}
                       </h1>
-                      {invite.description ? (
-                        <p className="mx-auto mt-3 max-w-xs text-sm font-semibold leading-6 text-orange-50">
-                          {invite.description}
+                      {eventLabel ? (
+                        <p className="mt-2 text-base font-semibold text-gold [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]">
+                          {eventLabel}
                         </p>
                       ) : null}
                     </div>
@@ -148,10 +159,10 @@ export default function RevealPage() {
               </div>
             </ScratchReveal>
             <ParticleBurst active={showParticleBurst} onDone={() => setShowParticleBurst(false)} />
-            <div className="grid gap-4 bg-white p-5 text-slate-950">
+            <div className="grid gap-4 border-t border-white/10 bg-void/60 p-5 text-white backdrop-blur">
               {hasScratchedReveal ? (
-                <div className={`grid gap-3 ${invite.moreInfoEnabled ? "grid-cols-2" : ""}`}>
-                  {invite.moreInfoEnabled ? (
+                <div className={`grid gap-3 ${hasMoreInfo ? "grid-cols-2" : ""}`}>
+                  {hasMoreInfo ? (
                     <Link className="button-primary min-w-0 px-2 text-xs" to={`/t/${id}/more`}>
                       <span className="min-w-0 text-center leading-tight">More Information</span>
                     </Link>
@@ -162,17 +173,21 @@ export default function RevealPage() {
                   />
                 </div>
               ) : (
-                <p className="text-center text-sm font-bold text-slate-500">
+                <p className="text-center text-sm font-bold text-white/55">
                   Swipe the screen to reveal {getPossessiveName(invite.hostName)} Plot Twist!
                 </p>
               )}
             </div>
           </div>
-          <p className="mt-4 text-center text-sm font-semibold text-orange-100/75">
-            Expires in <CountdownLabel mode="hoursMinutes" targetDate={revealState.expiresAt} />
+          <p className="mt-4 text-center text-sm font-semibold text-white/60">
+            Expires in{" "}
+            <span className="text-gold">
+              <CountdownLabel mode="hoursMinutes" targetDate={revealState.expiresAt} />
+            </span>
           </p>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }
@@ -180,16 +195,19 @@ export default function RevealPage() {
 // A small shared component for loading, locked, expired, and error screens.
 function StatusPage({ action, detail, icon, message, title }) {
   return (
-    <main className="mobile-page grid place-items-center bg-status text-white">
-      <section className="w-full rounded-card border border-white/10 bg-white/10 p-6 text-center shadow-glow backdrop-blur">
-        <div className="mx-auto mb-5 grid size-14 place-items-center rounded-3xl bg-orange-400 text-slate-950">
-          {icon || <Sparkles size={26} />}
-        </div>
-        <h1 className="text-4xl font-black leading-none tracking-normal">{title}</h1>
-        <p className="mx-auto mt-4 max-w-sm text-base leading-7 text-orange-50">{message}</p>
-        {detail ? <div className="mt-6">{detail}</div> : null}
-        {action ? <div className="mt-6">{action}</div> : null}
-      </section>
+    <main className="mobile-page flex flex-col bg-status text-white">
+      <div className="flex flex-1 items-center justify-center">
+        <section className="w-full rounded-card border border-white/10 bg-white/[0.06] p-6 text-center shadow-glow backdrop-blur-xl">
+          <div className="app-icon mx-auto mb-5 size-14 text-ink">
+            {icon || <Sparkles size={26} />}
+          </div>
+          <h1 className="font-display text-4xl font-bold leading-[1.04] tracking-tight">{title}</h1>
+          <p className="mx-auto mt-4 max-w-sm text-base leading-7 text-white/70">{message}</p>
+          {detail ? <div className="mt-6">{detail}</div> : null}
+          {action ? <div className="mt-6">{action}</div> : null}
+        </section>
+      </div>
+      <Footer />
     </main>
   );
 }

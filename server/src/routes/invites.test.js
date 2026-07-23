@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toPublicInvite } from "./invites.js";
+import { normalizeDateOnly, normalizePartifulUrl, toPublicInvite } from "./invites.js";
 
 // A full invite doc as stored, including all the sensitive fields.
 function fullInvite(overrides = {}) {
@@ -13,9 +13,6 @@ function fullInvite(overrides = {}) {
     imageAlt: "alt",
     unlockAt: new Date("2026-01-01T12:00:00Z"),
     expiresAt: new Date("2026-01-02T12:00:00Z"),
-    moreInfoEnabled: false,
-    moreInfoTitle: "",
-    moreInfoDescription: "",
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
     // sensitive — must never be exposed
@@ -75,5 +72,73 @@ describe("toPublicInvite", () => {
     const out = toPublicInvite(asMongoose);
     expect(out).not.toHaveProperty("email");
     expect(out.revealTitle).toBe("Tokyo!");
+  });
+
+  it("exposes partifulUrl when present", () => {
+    const out = toPublicInvite(fullInvite({ partifulUrl: "https://partiful.com/e/abc" }));
+    expect(out.partifulUrl).toBe("https://partiful.com/e/abc");
+  });
+
+  it("exposes event date fields when present", () => {
+    const out = toPublicInvite(
+      fullInvite({ eventStartDate: "2026-08-01", eventEndDate: "2026-08-03", eventIsRange: true })
+    );
+    expect(out.eventStartDate).toBe("2026-08-01");
+    expect(out.eventEndDate).toBe("2026-08-03");
+    expect(out.eventIsRange).toBe(true);
+  });
+});
+
+describe("normalizeDateOnly", () => {
+  it("treats missing/empty input as no date", () => {
+    expect(normalizeDateOnly(undefined)).toBe("");
+    expect(normalizeDateOnly(null)).toBe("");
+    expect(normalizeDateOnly("  ")).toBe("");
+  });
+
+  it("accepts real calendar dates", () => {
+    expect(normalizeDateOnly("2026-08-01")).toBe("2026-08-01");
+    expect(normalizeDateOnly("2026-12-31")).toBe("2026-12-31");
+  });
+
+  it("rejects malformed strings and impossible dates as null", () => {
+    expect(normalizeDateOnly("2026-02-31")).toBeNull();
+    expect(normalizeDateOnly("2026-13-01")).toBeNull();
+    expect(normalizeDateOnly("08/01/2026")).toBeNull();
+    expect(normalizeDateOnly("tomorrow")).toBeNull();
+  });
+});
+
+describe("normalizePartifulUrl", () => {
+  it("treats missing/empty input as no link", () => {
+    expect(normalizePartifulUrl(undefined)).toBe("");
+    expect(normalizePartifulUrl(null)).toBe("");
+    expect(normalizePartifulUrl("   ")).toBe("");
+  });
+
+  it("accepts partiful.com and prtf.co links, normalized to https", () => {
+    expect(normalizePartifulUrl("https://partiful.com/e/abc123")).toBe(
+      "https://partiful.com/e/abc123"
+    );
+    expect(normalizePartifulUrl("http://partiful.com/e/abc123")).toBe(
+      "https://partiful.com/e/abc123"
+    );
+    expect(normalizePartifulUrl("https://www.partiful.com/e/x")).toBe(
+      "https://www.partiful.com/e/x"
+    );
+    expect(normalizePartifulUrl("https://prtf.co/abc")).toBe("https://prtf.co/abc");
+  });
+
+  it("strips embedded credentials", () => {
+    expect(normalizePartifulUrl("https://user:pass@partiful.com/e/abc")).toBe(
+      "https://partiful.com/e/abc"
+    );
+  });
+
+  it("rejects non-Partiful hosts, unsafe protocols, and garbage as null", () => {
+    expect(normalizePartifulUrl("https://evil.com/e/abc")).toBeNull();
+    expect(normalizePartifulUrl("https://partiful.com.evil.com/e/abc")).toBeNull();
+    expect(normalizePartifulUrl("javascript:alert(1)")).toBeNull();
+    expect(normalizePartifulUrl("not a url")).toBeNull();
   });
 });

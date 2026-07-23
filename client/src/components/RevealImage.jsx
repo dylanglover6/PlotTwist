@@ -25,7 +25,7 @@ export default function RevealImage({ src, alt, className = "", sparklesSize = 5
 
   return (
     <div
-      className={`grid place-items-center bg-gradient-to-br from-orange-400 to-violet-700 text-white ${className}`}
+      className={`grid place-items-center bg-gradient-to-br from-gold via-magenta to-purple text-white ${className}`}
     >
       <Sparkles size={sparklesSize} />
     </div>

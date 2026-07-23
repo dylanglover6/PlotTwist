@@ -3,50 +3,62 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   Design tokens
-   Single source of truth for the look. Re-theme the whole app by changing
-   values here (Tailwind's ink/ember/plum colors, the card radius, and the
-   glow shadow all resolve to these variables via tailwind.config.js).
+   Design tokens — "Plot Twist" party-invite theme
+   Single source of truth for the look. Dark, moody aubergine base with
+   electric purple + warm gold accents that glow against it. Re-theme the
+   whole app by changing values here (Tailwind's ink/ember/plum colors, the
+   card radius, and the glow shadow all resolve to these variables via
+   tailwind.config.js).
    Note: decorative canvas/confetti colors in ScratchReveal.jsx and
    ParticleBurst.jsx remain literal — they are effects, not theme surfaces.
    ========================================================================== */
 :root {
-  /* Brand colors */
-  --color-ink: #111827; /* primary dark surface + body text */
-  --color-ember: #f97316; /* accent orange */
-  --color-plum: #5b21b6; /* accent purple */
+  /* Brand colors (mapped to Tailwind ink/ember/plum) */
+  --color-ink: #0c0714; /* primary dark surface */
+  --color-ember: #fbbf24; /* warm gold accent (was orange) */
+  --color-plum: #a855f7; /* electric purple accent */
 
-  /* Light "app" background gradient */
-  --color-app-top: #fed7aa;
-  --color-app-from: #fff7ed;
-  --color-app-to: #eef2ff;
-  --color-app-bg: #fff7ed; /* solid page fallback */
+  /* Extended palette */
+  --color-void: #08040f; /* darkest backdrop tone */
+  --color-aubergine: #150a24; /* deep purple backdrop tone */
+  --color-purple: #a855f7;
+  --color-magenta: #d946ef;
+  --color-gold: #fbbf24;
+  --color-yellow: #fde047;
 
-  /* Deep tones for dark reveal/status/created surfaces */
-  --color-reveal-deep: #3b0764;
-  --color-status-deep: #581c87;
-  --color-created-deep: #312e81;
+  /* Text on the dark base */
+  --text-primary: #f6f2fb; /* near-white headings/body */
+  --text-muted: rgba(240, 235, 250, 0.66); /* supporting copy */
+  --text-faint: rgba(240, 235, 250, 0.42);
 
   /* Radii */
   --radius-card: 2rem;
 
-  /* Shadows */
-  --shadow-glow: 0 24px 80px rgba(249, 115, 22, 0.28);
+  /* Signature glows */
+  --shadow-glow: 0 24px 90px rgba(168, 85, 247, 0.4);
+  --shadow-glow-gold: 0 20px 70px rgba(251, 191, 36, 0.32);
 
   /* Typography */
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display:
+    "Space Grotesk", "Clash Display", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
 }
 
 /* ==========================================================================
    Base
    ========================================================================== */
 :root {
-  color: var(--color-ink);
-  background: var(--color-app-bg);
+  color: var(--text-primary);
+  background: var(--color-void);
   font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  /* Render native controls (date picker, select menus, scrollbars) dark so
+     they match the theme instead of flashing a bright system surface. */
+  color-scheme: dark;
 }
 
 * {
@@ -57,6 +69,21 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background: var(--color-void);
+  color: var(--text-primary);
+}
+
+/* Global film-grain / noise overlay for depth. Sits above content but never
+   intercepts pointer events, and is hidden for reduced-motion users. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 button,
@@ -71,15 +98,50 @@ input[type="datetime-local"] {
   min-width: 0;
 }
 
+/* Autofill shouldn't paint an opaque light box over our dark inputs. */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px rgba(30, 16, 48, 0.9) inset;
+  caret-color: var(--text-primary);
+}
+
+::selection {
+  background: rgba(217, 70, 239, 0.35);
+  color: #fff;
+}
+
 /* ==========================================================================
    Layout + component classes
    Declared in @layer components so Tailwind utilities (emitted in the later
-   utilities layer) reliably override them — e.g. `button-primary bg-orange-500`
-   renders orange, and compact/size overrides on buttons take effect.
+   utilities layer) reliably override them — e.g. `button-primary bg-gold`
+   renders gold, and compact/size overrides on buttons take effect.
    ========================================================================== */
 @layer components {
   .mobile-page {
-    @apply mx-auto min-h-screen w-full max-w-xl px-5 py-6;
+    @apply relative mx-auto min-h-screen w-full max-w-xl px-5 py-6;
+  }
+
+  /* Small uppercase kicker above headings ("sticker" energy). */
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.2em] text-gold;
+  }
+
+  /* Rounded-squircle app-icon frame. Drop a real icon in via `.app-icon img`;
+     until then it shows the sparkle child. See the [APP ICON] placeholders. */
+  .app-icon {
+    @apply relative grid shrink-0 place-items-center overflow-hidden text-ink;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 32%;
+    background: linear-gradient(140deg, var(--color-gold), var(--color-magenta) 65%, var(--color-purple));
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+      0 10px 26px rgba(217, 70, 239, 0.4);
+  }
+
+  .app-icon img {
+    @apply absolute inset-0 h-full w-full object-cover;
   }
 
   .field {
@@ -87,46 +149,117 @@ input[type="datetime-local"] {
   }
 
   .field span {
-    @apply text-sm font-semibold text-slate-700;
+    @apply text-sm font-semibold text-white/80;
   }
 
   .input {
-    @apply w-full rounded-2xl border border-orange-100 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100;
+    @apply w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition placeholder:text-white/40 focus:border-fuchsia-400/70 focus:bg-white/[0.07] focus:ring-4 focus:ring-fuchsia-500/20;
   }
 
+  /* Primary CTA: electric purple → magenta pill with a glow and a tactile
+     press. Utilities layered after can recolor it (e.g. `.button-gold`). */
   .button-primary {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-white transition-transform duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-60;
+    background-image: linear-gradient(120deg, var(--color-purple), var(--color-magenta));
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+      0 14px 40px rgba(168, 85, 247, 0.45);
   }
 
+  .button-primary:hover {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.16) inset,
+      0 18px 52px rgba(217, 70, 239, 0.6);
+  }
+
+  .button-primary:active {
+    transform: scale(0.96);
+  }
+
+  /* High-emphasis warm variant: gold → amber with ink text (great contrast).
+     Self-contained so it works standalone or layered over `.button-primary`. */
+  .button-gold {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 py-3 font-bold text-ink transition-transform duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-60;
+    background-image: linear-gradient(120deg, var(--color-yellow), var(--color-gold) 55%, #f59e0b);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+      0 14px 40px rgba(251, 191, 36, 0.42);
+  }
+
+  .button-gold:active {
+    transform: scale(0.96);
+  }
+
+  .button-gold:hover {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.35) inset,
+      0 18px 52px rgba(251, 191, 36, 0.55);
+  }
+
+  /* Secondary: glass pill with a hairline border. */
   .button-secondary {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-orange-200 bg-white px-5 py-3 font-bold text-slate-950 transition hover:bg-orange-50;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 font-bold text-white backdrop-blur transition-transform duration-150 ease-out hover:bg-white/10;
   }
 
+  .button-secondary:active {
+    transform: scale(0.96);
+  }
+
+  /* Glass card surface used for forms, status panels, sheets. */
   .surface {
-    @apply rounded-card border border-white/70 bg-white/90 shadow-2xl shadow-orange-950/10 backdrop-blur;
+    @apply rounded-card border border-white/10 bg-white/[0.06] shadow-glow backdrop-blur-xl;
   }
 
-  /* Page background surfaces: palette lives in the tokens above instead of
-     being duplicated across pages as long arbitrary Tailwind values. */
+  /* Nested block inside a form/section (was light violet/orange boxes). */
+  .panel {
+    @apply rounded-3xl border border-white/10 bg-white/[0.04] p-4;
+  }
+
+  /* Page background surfaces: layered purple + gold glow blooms over a deep
+     aubergine → void gradient. Palette lives in the tokens above. */
   .bg-app {
     background:
-      radial-gradient(circle at top left, var(--color-app-top), transparent 32%),
-      linear-gradient(160deg, var(--color-app-from), var(--color-app-to));
+      radial-gradient(60% 45% at 12% -5%, rgba(168, 85, 247, 0.42), transparent 60%),
+      radial-gradient(55% 40% at 105% 10%, rgba(217, 70, 239, 0.32), transparent 55%),
+      radial-gradient(60% 45% at 50% 108%, rgba(251, 191, 36, 0.2), transparent 62%),
+      linear-gradient(175deg, var(--color-aubergine), var(--color-void));
   }
 
   .bg-reveal {
     background:
-      radial-gradient(circle at top, var(--color-ember), transparent 30%),
-      linear-gradient(160deg, var(--color-ink), var(--color-reveal-deep));
+      radial-gradient(70% 40% at 50% -5%, rgba(251, 191, 36, 0.28), transparent 60%),
+      radial-gradient(60% 45% at 0% 40%, rgba(168, 85, 247, 0.4), transparent 55%),
+      radial-gradient(60% 45% at 100% 60%, rgba(217, 70, 239, 0.32), transparent 55%),
+      linear-gradient(165deg, var(--color-aubergine), var(--color-void));
   }
 
   .bg-status {
-    background: linear-gradient(160deg, var(--color-ink), var(--color-status-deep));
+    background:
+      radial-gradient(65% 45% at 20% 0%, rgba(168, 85, 247, 0.38), transparent 58%),
+      radial-gradient(60% 45% at 100% 100%, rgba(217, 70, 239, 0.28), transparent 55%),
+      linear-gradient(165deg, var(--color-aubergine), var(--color-void));
   }
 
   .bg-created {
-    background: linear-gradient(150deg, var(--color-ink), var(--color-created-deep));
+    background:
+      radial-gradient(65% 45% at 80% 0%, rgba(251, 191, 36, 0.24), transparent 58%),
+      radial-gradient(60% 50% at 10% 90%, rgba(168, 85, 247, 0.4), transparent 55%),
+      linear-gradient(165deg, var(--color-aubergine), var(--color-void));
   }
+
+  /* Oversized display headline with a purple→gold gradient wash. */
+  .display-gradient {
+    background-image: linear-gradient(100deg, #fff 8%, var(--color-gold) 46%, var(--color-magenta) 96%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Display font utility (also available as Tailwind `font-display`). */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* ==========================================================================
@@ -137,27 +270,27 @@ input[type="datetime-local"] {
 }
 
 .countdown-final__seconds {
-  background: rgba(249, 115, 22, 0.88);
+  background: linear-gradient(140deg, var(--color-yellow), var(--color-gold));
   color: var(--color-ink);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-    0 0 24px rgba(249, 115, 22, 0.72);
+    0 0 26px rgba(251, 191, 36, 0.75);
   animation: countdown-final-pop 1s ease-in-out infinite;
 }
 
 .countdown-final__seconds span {
-  color: rgba(17, 24, 39, 0.72);
+  color: rgba(12, 7, 20, 0.72);
 }
 
 @keyframes countdown-final-glow {
   0%,
   100% {
-    filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0));
+    filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0));
     transform: scale(1);
   }
 
   50% {
-    filter: drop-shadow(0 0 22px rgba(249, 115, 22, 0.52));
+    filter: drop-shadow(0 0 22px rgba(251, 191, 36, 0.55));
     transform: scale(1.015);
   }
 }
@@ -178,45 +311,75 @@ input[type="datetime-local"] {
    ========================================================================== */
 .particle-burst {
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 60;
   overflow: hidden;
 }
 
-.particle-burst__dot {
+/* Compositor-only (transform + opacity) so the whole burst stays smooth — no
+   per-frame paint from shadows. */
+.particle-burst__piece {
   position: absolute;
-  top: var(--particle-origin-y);
-  left: var(--particle-origin-x);
-  width: var(--particle-size);
-  height: var(--particle-size);
-  border-radius: 999px;
-  background: var(--particle-color);
-  box-shadow:
-    0 0 12px var(--particle-color),
-    0 0 28px var(--particle-color);
   opacity: 0;
-  animation: plot-twist-burst 1100ms cubic-bezier(0.16, 1, 0.3, 1) var(--particle-delay) forwards;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  animation-name: plot-twist-confetti;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
-@keyframes plot-twist-burst {
+/* A confetti-cannon arc: fire upward and decelerate to the apex, then let
+   gravity accelerate the graceful fall back down and off-screen, spinning and
+   drifting sideways the whole way. Per-keyframe easing shapes the arc. */
+@keyframes plot-twist-confetti {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.25) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(var(--c-rot));
+    /* Fire upward, decelerating into the apex. */
+    animation-timing-function: cubic-bezier(0.12, 0.66, 0.3, 1);
   }
 
-  14% {
+  6% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.25) rotate(90deg);
   }
 
-  64% {
-    opacity: 0.85;
+  28% {
+    transform: translate3d(calc(var(--c-drift) * 0.32), var(--c-apex), 0)
+      rotate(calc(var(--c-rot) + var(--c-spin) * 0.32));
+    /* Then a long, gently accelerating fall — ~70% of the timeline. */
+    animation-timing-function: cubic-bezier(0.4, 0.02, 0.62, 1);
+  }
+
+  90% {
+    opacity: 1;
   }
 
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(0.08)
-      rotate(250deg);
+    transform: translate3d(var(--c-drift), var(--c-fall), 0)
+      rotate(calc(var(--c-rot) + var(--c-spin)));
+  }
+}
+
+/* ==========================================================================
+   Reduced motion — quiet the glows, springs, and grain for users who ask.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  .button-primary:active,
+  .button-secondary:active {
+    transform: none;
   }
 }

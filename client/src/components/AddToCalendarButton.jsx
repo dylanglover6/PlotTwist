@@ -16,10 +16,13 @@ export default function AddToCalendarButton({
 }
 
 function createCalendarHref(invite) {
-  const startDate = new Date(invite.unlockAt);
-  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
   const title = invite.revealTitle || "Plot Twist";
-  const description = invite.description || invite.teaserMessage || "";
+  const baseDescription = invite.description || invite.teaserMessage || "";
+  // Fold the Partiful RSVP link into the event so it travels with the calendar
+  // entry (both as a dedicated URL property and inline in the description).
+  const description = invite.partifulUrl
+    ? `${baseDescription ? `${baseDescription}\n\n` : ""}RSVP on Partiful: ${invite.partifulUrl}`
+    : baseDescription;
 
   const ics = [
     "BEGIN:VCALENDAR",
@@ -28,15 +31,41 @@ function createCalendarHref(invite) {
     "BEGIN:VEVENT",
     `UID:${invite._id || crypto.randomUUID()}@plot-twist`,
     `DTSTAMP:${formatCalendarDate(new Date())}`,
-    `DTSTART:${formatCalendarDate(startDate)}`,
-    `DTEND:${formatCalendarDate(endDate)}`,
+    ...buildDateLines(invite),
     `SUMMARY:${escapeCalendarText(title)}`,
     `DESCRIPTION:${escapeCalendarText(description)}`,
+    ...(invite.partifulUrl ? [`URL:${escapeCalendarText(invite.partifulUrl)}`] : []),
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");
 
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+}
+
+// Prefer an explicit event date (an all-day VEVENT, spanning the range if set).
+// Fall back to a one-hour block at the unlock time when no event date was given.
+function buildDateLines(invite) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(invite.eventStartDate || "")) {
+    const endSource =
+      invite.eventIsRange && invite.eventEndDate ? invite.eventEndDate : invite.eventStartDate;
+    // For all-day events the iCal DTEND is exclusive, so it lands on the day after.
+    return [
+      `DTSTART;VALUE=DATE:${invite.eventStartDate.replace(/-/g, "")}`,
+      `DTEND;VALUE=DATE:${addOneDay(endSource).replace(/-/g, "")}`
+    ];
+  }
+
+  const startDate = new Date(invite.unlockAt);
+  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+  return [`DTSTART:${formatCalendarDate(startDate)}`, `DTEND:${formatCalendarDate(endDate)}`];
+}
+
+function addOneDay(ymd) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  const mm = String(next.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(next.getUTCDate()).padStart(2, "0");
+  return `${next.getUTCFullYear()}-${mm}-${dd}`;
 }
 
 function formatCalendarDate(date) {

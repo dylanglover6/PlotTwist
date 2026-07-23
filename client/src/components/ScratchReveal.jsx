@@ -46,9 +46,9 @@ export default function ScratchReveal({
     context.globalCompositeOperation = "source-over";
 
     const gradient = context.createLinearGradient(0, 0, rect.width, rect.height);
-    gradient.addColorStop(0, "#f97316");
-    gradient.addColorStop(0.52, "#7c3aed");
-    gradient.addColorStop(1, "#111827");
+    gradient.addColorStop(0, "#fbbf24");
+    gradient.addColorStop(0.5, "#d946ef");
+    gradient.addColorStop(1, "#150a24");
 
     context.fillStyle = gradient;
     context.fillRect(0, 0, rect.width, rect.height);

@@ -56,6 +56,15 @@ function button(href, label) {
   return `<a href="${href}" style="display:inline-block;background:#f97316;color:#111827;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:12px;">${label}</a>`;
 }
 
+// Optional "RSVP on Partiful" line, shown only when the invite has a link.
+// The URL was validated + normalized to https at creation time.
+function partifulLine(invite) {
+  if (!invite.partifulUrl) return "";
+  return `<p style="margin:16px 0 0;">
+    <a href="${invite.partifulUrl}" style="color:#e8620f;font-weight:600;text-decoration:none;">RSVP on Partiful →</a>
+  </p>`;
+}
+
 function unsubFooter(id, unsubToken) {
   return `You're receiving this because this address was added to a Plot Twist.
     <a href="${unsubscribeUrl(id, unsubToken)}" style="color:#6c6478;">Unsubscribe</a>.`;
@@ -101,7 +110,7 @@ ${link}
 
 ${scheduled ? `It goes live ${fmt(invite.unlockAt)}. ` : ""}It expires ${fmt(invite.expiresAt)}.
 ${scheduled ? "We'll email you when it goes live and " : "We'll email you "}when it expires.
-
+${invite.partifulUrl ? `\nRSVP on Partiful: ${invite.partifulUrl}\n` : ""}
 Unsubscribe: ${unsubscribeUrl(invite._id, unsubToken)}`,
     html: layout({
       preheader: "You're confirmed — here's your Plot Twist share link.",
@@ -116,7 +125,8 @@ Unsubscribe: ${unsubscribeUrl(invite._id, unsubToken)}`,
           It expires <strong>${fmt(invite.expiresAt)}</strong>.
           ${scheduled ? "We'll email you when it goes live and when it expires." : "We'll email you when it expires."}
         </p>
-        <p style="margin:0;">${button(link, "Open your reveal page")}</p>`,
+        <p style="margin:0;">${button(link, "Open your reveal page")}</p>
+        ${partifulLine(invite)}`,
       footerHtml: unsubFooter(invite._id, unsubToken)
     })
   };
@@ -132,7 +142,7 @@ export function liveEmail(invite, unsubToken) {
 ${link}
 
 It expires ${fmt(invite.expiresAt)}.
-
+${invite.partifulUrl ? `\nRSVP on Partiful: ${invite.partifulUrl}\n` : ""}
 Unsubscribe: ${unsubscribeUrl(invite._id, unsubToken)}`,
     html: layout({
       preheader: "Your Plot Twist just went live.",
@@ -142,7 +152,8 @@ Unsubscribe: ${unsubscribeUrl(invite._id, unsubToken)}`,
           Your Plot Twist <strong>"${invite.revealTitle}"</strong> is now live — anyone with
           the link can reveal it. It expires <strong>${fmt(invite.expiresAt)}</strong>.
         </p>
-        <p style="margin:0;">${button(link, "Open your reveal page")}</p>`,
+        <p style="margin:0;">${button(link, "Open your reveal page")}</p>
+        ${partifulLine(invite)}`,
       footerHtml: unsubFooter(invite._id, unsubToken)
     })
   };
