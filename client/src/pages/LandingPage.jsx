@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
+import Footer from "../components/Footer.jsx";
 import ParticleBurst from "../components/ParticleBurst.jsx";
 import ScratchReveal from "../components/ScratchReveal.jsx";
 
@@ -16,38 +17,42 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="mobile-page bg-app text-ink">
-      <section className="flex min-h-[calc(100vh-3rem)] flex-col justify-between">
+    <main className="mobile-page flex flex-col bg-app text-white">
+      <section className="flex flex-1 flex-col justify-between gap-10">
         <nav className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-black">
-            <span className="grid size-9 place-items-center rounded-2xl bg-slate-950 text-white">
+          <div className="flex items-center gap-2.5 text-lg font-bold">
+            {/* [APP ICON] Squircle brand placeholder — drop a real icon by
+                rendering <img> inside .app-icon; the sparkle is the fallback. */}
+            <span className="app-icon">
               <Sparkles size={18} />
             </span>
-            Plot Twist
+            <span className="font-display">Plot Twist</span>
           </div>
           {/* Link changes pages without doing a full browser refresh. */}
-          <Link className="button-secondary min-h-10 px-4 py-2 text-sm" to="/create">
+          <Link className="button-secondary min-h-10 px-5 py-2 text-sm" to="/create">
             Create
           </Link>
         </nav>
 
-        <div className="py-16">
-          <h1 className="max-w-sm text-5xl font-black leading-[0.94] tracking-normal">
-            Make your next invitation a surprise. <br></br>For the plot.
+        <div className="py-14">
+          <span className="eyebrow">✨ Surprise reveal invites</span>
+          <h1 className="mt-4 max-w-sm font-display text-6xl font-bold leading-[0.92] tracking-tight">
+            Make your next invitation a{" "}
+            <span className="display-gradient">surprise.</span> For the plot.
           </h1>
-          <p className="mt-5 max-w-md text-lg leading-8 text-slate-700">
+          <p className="mt-5 max-w-md text-lg leading-8 text-white/70">
             Build a temporary reveal page for trips, parties, concerts, birthdays, and plans that
             deserve a little drama.
           </p>
-          <Link className="button-primary mt-6 min-h-10 px-4 py-2 text-sm sm:w-auto" to="/create">
+          <Link className="button-gold mt-7 text-base sm:w-auto" to="/create">
             Get Started
-            <ArrowRight size={16} />
+            <ArrowRight size={18} />
           </Link>
         </div>
 
-        <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-card border border-white/70 bg-slate-950 shadow-glow">
+        <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-card border border-white/10 bg-void shadow-glow">
           <ScratchReveal
-            className="aspect-[5/4]"
+            className="aspect-[4/5]"
             brushSize={54}
             coverSubtitle="Swipe to Reveal"
             coverTitle="Ready to build some suspense? Swipe here"
@@ -56,18 +61,15 @@ export default function LandingPage() {
           >
             <div className="grid h-full place-items-center bg-reveal p-6 text-center text-white">
               <div>
-                <div className="mx-auto mb-5 grid size-14 place-items-center rounded-3xl bg-orange-400 text-slate-950">
+                <div className="app-icon mx-auto mb-5 size-14 text-ink">
                   <Sparkles size={26} />
                 </div>
-                <p className="text-sm font-bold uppercase text-orange-200">Plot Twist</p>
-                <h2 className="mt-2 text-3xl font-black leading-none tracking-normal">
+                <p className="eyebrow">Plot Twist</p>
+                <h2 className="mt-2 font-display text-3xl font-bold leading-none tracking-tight">
                   Your surprise starts here.
                 </h2>
                 {hasRevealedCta ? (
-                  <Link
-                    className="button-primary mt-6 w-full bg-orange-500 text-slate-950 hover:bg-orange-400"
-                    to="/create"
-                  >
+                  <Link className="button-gold mt-6 w-full" to="/create">
                     Send your own Plot Twist
                     <ArrowRight size={18} />
                   </Link>
@@ -78,6 +80,7 @@ export default function LandingPage() {
           <ParticleBurst active={showParticleBurst} onDone={() => setShowParticleBurst(false)} />
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

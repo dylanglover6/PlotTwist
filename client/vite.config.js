@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://localhost:5000"
+      // Server runs on 5050 in dev (macOS AirPlay Receiver occupies 5000).
+      "/api": "http://localhost:5050"
     }
   }
 });

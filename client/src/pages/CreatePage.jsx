@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarClock, ImageIcon, Mail, WandSparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  CalendarDays,
+  ExternalLink,
+  ImageIcon,
+  Mail,
+  PartyPopper,
+  WandSparkles
+} from "lucide-react";
 import { searchImages } from "../api/images.js";
 import { createInvite } from "../api/invites.js";
+import Footer from "../components/Footer.jsx";
+import { formatEventDate } from "../utils/time.js";
 
 // This object gives the form its starting values.
 // Keeping it outside the component avoids recreating it on every render.
@@ -10,16 +21,17 @@ const defaultForm = {
   hostName: "",
   teaserMessage: "",
   revealTitle: "",
-  description: "",
+  eventStartDate: "",
+  eventEndDate: "",
+  eventIsRange: false,
   imageUrl: "",
   imageAlt: "",
+  description: "",
+  partifulUrl: "",
   unlockMode: "now",
   unlockAt: "",
   expirationHours: 24,
-  email: "",
-  moreInfoEnabled: false,
-  moreInfoTitle: "",
-  moreInfoDescription: ""
+  email: ""
 };
 
 export default function CreatePage() {
@@ -75,15 +87,16 @@ export default function CreatePage() {
         hostName: form.hostName,
         teaserMessage: form.teaserMessage,
         revealTitle: form.revealTitle,
-        description: form.description,
+        eventStartDate: form.eventStartDate,
+        eventEndDate: form.eventIsRange ? form.eventEndDate : "",
+        eventIsRange: form.eventIsRange,
         imageUrl: form.imageUrl,
         imageAlt: form.imageAlt,
+        description: form.description,
+        partifulUrl: form.partifulUrl.trim(),
         unlockAt: unlockAt.toISOString(),
         expirationHours: Number(form.expirationHours) || 24,
-        email: form.email.trim(),
-        moreInfoEnabled: form.moreInfoEnabled,
-        moreInfoTitle: form.moreInfoTitle,
-        moreInfoDescription: form.moreInfoDescription
+        email: form.email.trim()
       });
 
       // MongoDB creates _id. We use it to build the confirmation page URL.
@@ -138,18 +151,22 @@ export default function CreatePage() {
     }));
   }
 
+  const eventLabel = formatEventDate(form.eventStartDate, form.eventEndDate, form.eventIsRange);
+
   return (
-    <main className="mobile-page bg-orange-50">
+    <main className="mobile-page flex flex-col bg-app text-white">
       {/* JSX className is React's version of HTML class. These are Tailwind classes. */}
       <div className="mb-6">
-        <p className="text-sm font-bold uppercase text-orange-700">Create</p>
-        <h1 className="mt-2 text-4xl font-black leading-none tracking-normal">Set up the twist.</h1>
+        <p className="eyebrow">Create</p>
+        <h1 className="mt-2 font-display text-4xl font-bold leading-none tracking-tight">
+          Set up the <span className="display-gradient">twist.</span>
+        </h1>
       </div>
 
       {/* Controlled inputs read from React state and update React state on change. */}
       <form className="surface grid gap-5 p-5" onSubmit={handleSubmit}>
         <label className="field">
-          <span>Host name</span>
+          <span>Your name</span>
           <input
             className="input"
             name="hostName"
@@ -182,79 +199,75 @@ export default function CreatePage() {
           />
         </label>
 
-        <label className="field">
-          <span>Description/details</span>
-          <textarea
-            className="input min-h-32"
-            name="description"
-            value={form.description}
-            onChange={updateField}
-          />
-        </label>
-
-        <section className="grid gap-4 rounded-3xl border border-violet-100 bg-violet-50 p-4">
-          <label className="flex items-center gap-3 font-bold text-slate-900">
+        <section className="panel grid gap-3">
+          <div className="flex items-center gap-2 font-bold text-white">
+            <CalendarDays size={18} className="text-gold" />
+            Date
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+              Optional
+            </span>
+          </div>
+          <div className={form.eventIsRange ? "grid gap-2 sm:grid-cols-2" : "grid gap-2"}>
+            <label className="field">
+              <span className="sr-only">{form.eventIsRange ? "Start date" : "Event date"}</span>
+              <input
+                className="input min-w-0 max-w-full"
+                name="eventStartDate"
+                type="date"
+                aria-label={form.eventIsRange ? "Start date" : "Event date"}
+                value={form.eventStartDate}
+                onChange={updateField}
+              />
+            </label>
+            {form.eventIsRange ? (
+              <label className="field">
+                <span className="sr-only">End date</span>
+                <input
+                  className="input min-w-0 max-w-full"
+                  name="eventEndDate"
+                  type="date"
+                  aria-label="End date"
+                  min={form.eventStartDate || undefined}
+                  value={form.eventEndDate}
+                  onChange={updateField}
+                />
+              </label>
+            ) : null}
+          </div>
+          <label className="flex items-center gap-3 text-sm font-semibold text-white/80">
             <input
-              checked={form.moreInfoEnabled}
-              className="size-5 accent-violet-700"
-              name="moreInfoEnabled"
+              checked={form.eventIsRange}
+              className="size-5 accent-fuchsia-500"
+              name="eventIsRange"
               type="checkbox"
               onChange={updateField}
             />
-            Add a More Information page
+            Spans multiple days
           </label>
-
-          {form.moreInfoEnabled ? (
-            <>
-              <label className="field">
-                <span>More Information title</span>
-                <input
-                  className="input"
-                  name="moreInfoTitle"
-                  placeholder="Everything you need to know"
-                  value={form.moreInfoTitle}
-                  onChange={updateField}
-                />
-              </label>
-              <label className="field">
-                <span>More Information description</span>
-                <textarea
-                  className="input min-h-32"
-                  name="moreInfoDescription"
-                  placeholder="Add itinerary notes, packing details, address info, or anything else."
-                  value={form.moreInfoDescription}
-                  onChange={updateField}
-                />
-              </label>
-            </>
-          ) : null}
         </section>
 
-        <section className="rounded-3xl border border-dashed border-orange-300 bg-orange-50 p-4">
-          <div className="mb-3 flex items-center gap-2 font-bold text-slate-800">
-            <ImageIcon size={18} />
+        <section className="rounded-3xl border border-dashed border-white/20 bg-white/[0.04] p-4">
+          <div className="mb-3 flex items-center gap-2 font-bold text-white">
+            <ImageIcon size={18} className="text-gold" />
             Destination image
           </div>
           {form.imageUrl ? (
-            <div
-              ref={imagePreviewRef}
-              className="overflow-hidden rounded-card bg-slate-950 shadow-xl shadow-orange-950/10"
-            >
+            <div ref={imagePreviewRef} className="overflow-hidden rounded-card bg-void shadow-glow">
               <div className="relative aspect-[4/5] overflow-hidden">
                 <img
                   className="h-full w-full object-cover"
                   src={form.imageUrl}
                   alt={form.imageAlt || form.revealTitle}
                 />
-                <div className="absolute inset-0 grid place-items-center bg-slate-950/45 p-6 text-center text-white">
-                  <div>
-                    <p className="text-sm font-bold uppercase text-orange-200">Preview</p>
-                    <h2 className="mt-2 text-4xl font-black leading-none tracking-normal">
+                <div className="absolute inset-0 grid place-items-center p-5 text-center text-white">
+                  <div className="max-w-full rounded-3xl bg-[#3a1180]/40 px-6 py-5 shadow-xl shadow-black/40 ring-1 ring-white/15 backdrop-blur-lg">
+                    <p className="eyebrow">Preview</p>
+                    <h2 className="mt-2 font-display text-4xl font-bold leading-none tracking-tight [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]">
                       {form.revealTitle || "Your reveal title"}
                     </h2>
-                    {form.description ? (
-                      <p className="mx-auto mt-3 max-w-xs text-sm font-semibold leading-6 text-orange-50">
-                        {form.description}
+                    {eventLabel ? (
+                      <p className="mt-3 text-sm font-semibold text-gold [text-shadow:0_1px_10px_rgba(0,0,0,0.6)]">
+                        {eventLabel}
                       </p>
                     ) : null}
                   </div>
@@ -280,7 +293,7 @@ export default function CreatePage() {
                   onChange={(event) => setImageQuery(event.target.value)}
                 />
                 <button
-                  className="button-secondary px-4"
+                  className="button-secondary px-5"
                   aria-label="Search images"
                   disabled={isSearching}
                   type="button"
@@ -294,7 +307,7 @@ export default function CreatePage() {
                   {/* map turns an array of image results into a list of JSX buttons. */}
                   {imageResults.map((image) => (
                     <button
-                      className="overflow-hidden rounded-2xl border-2 border-white transition hover:border-orange-500"
+                      className="overflow-hidden rounded-2xl border-2 border-white/10 transition hover:border-fuchsia-400"
                       key={image.id}
                       type="button"
                       onClick={() => selectImage(image)}
@@ -309,9 +322,9 @@ export default function CreatePage() {
                 </div>
               ) : null}
               {imageNotice ? (
-                <p className="mt-3 text-sm font-semibold text-orange-700">{imageNotice}</p>
+                <p className="mt-3 text-sm font-semibold text-gold">{imageNotice}</p>
               ) : null}
-              <p className="mt-3 text-sm text-slate-600">
+              <p className="mt-3 text-sm text-white/55">
                 {hasSearched && imageResults.length > 0
                   ? "Select a result to preview it as the reveal image."
                   : "Search for a photo to use as the reveal image, or skip it for a bold gradient."}
@@ -320,40 +333,64 @@ export default function CreatePage() {
           )}
         </section>
 
-        <section className="grid min-w-0 gap-4 overflow-hidden rounded-3xl bg-slate-950 p-4 text-white">
-          <div className="flex items-center gap-2 font-bold">
-            <CalendarClock size={18} />
-            Unlock timing
-          </div>
-          <select
-            className="input min-w-0 max-w-full text-slate-950"
-            aria-label="Unlock timing"
-            name="unlockMode"
-            value={form.unlockMode}
-            onChange={updateField}
-          >
-            <option value="now">Unlock now</option>
-            <option value="scheduled">Schedule unlock</option>
-          </select>
-          {/* Conditional rendering: show this input only when scheduled mode is selected. */}
-          {form.unlockMode === "scheduled" ? (
-            <input
-              className="input min-w-0 max-w-full text-slate-950"
-              aria-label="Unlock date and time"
-              name="unlockAt"
-              required
-              type="datetime-local"
-              value={form.unlockAt}
+        <div className="grid gap-2">
+          <label className="field">
+            <span>More information</span>
+            <textarea
+              className="input min-h-32"
+              name="description"
+              placeholder="Itinerary, address, packing notes — anything extra."
+              value={form.description}
               onChange={updateField}
             />
-          ) : null}
+          </label>
+          <p className="text-sm text-white/55">
+            Optional. Shown on a separate More Information page, along with your Partiful link.
+          </p>
+        </div>
+
+        <section className="panel grid gap-3">
+          <div className="flex items-center gap-2 font-bold text-white">
+            <PartyPopper size={18} className="text-gold" />
+            Partiful invite
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+              Optional
+            </span>
+          </div>
+          <label className="field">
+            <span className="sr-only">Partiful invite link</span>
+            <input
+              className="input"
+              name="partifulUrl"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              placeholder="https://partiful.com/e/..."
+              value={form.partifulUrl}
+              onChange={updateField}
+            />
+          </label>
+          <p className="text-sm text-white/55">
+            Paste your Partiful event link and we&apos;ll add an RSVP button for your guests.
+          </p>
+          <a
+            className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-gold underline-offset-2 hover:underline"
+            href="https://partiful.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Create one on Partiful
+            <ExternalLink size={14} />
+          </a>
         </section>
 
-        <section className="grid gap-2 rounded-3xl border border-orange-100 bg-white p-4">
-          <div className="flex items-center gap-2 font-bold text-slate-800">
-            <Mail size={18} />
+        <section className="panel grid gap-2">
+          <div className="flex items-center gap-2 font-bold text-white">
+            <Mail size={18} className="text-gold" />
             Email me updates
-            <span className="text-xs font-semibold uppercase text-slate-400">Optional</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+              Optional
+            </span>
           </div>
           <label className="field">
             <span className="sr-only">Your email address</span>
@@ -367,22 +404,57 @@ export default function CreatePage() {
               onChange={updateField}
             />
           </label>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-white/55">
             We&apos;ll send a confirmation link. Confirm it to get your share link and a heads-up
             when your Plot Twist goes live and when it expires. You can unsubscribe anytime.
           </p>
         </section>
 
+        <section className="panel grid min-w-0 gap-4 overflow-hidden text-white">
+          <div className="flex items-center gap-2 font-bold">
+            <CalendarClock size={18} className="text-gold" />
+            Unlock timing
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
+              Optional
+            </span>
+          </div>
+          <select
+            className="input min-w-0 max-w-full"
+            aria-label="Unlock timing"
+            name="unlockMode"
+            value={form.unlockMode}
+            onChange={updateField}
+          >
+            <option value="now">Unlock now</option>
+            <option value="scheduled">Schedule unlock</option>
+          </select>
+          {/* Conditional rendering: show this input only when scheduled mode is selected. */}
+          {form.unlockMode === "scheduled" ? (
+            <input
+              className="input min-w-0 max-w-full"
+              aria-label="Unlock date and time"
+              name="unlockAt"
+              required
+              type="datetime-local"
+              value={form.unlockAt}
+              onChange={updateField}
+            />
+          ) : null}
+        </section>
+
         {/* Show the error message only when error has text. */}
         {error ? (
-          <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>
+          <p className="rounded-2xl border border-red-400/25 bg-red-500/15 p-3 text-sm font-semibold text-red-200">
+            {error}
+          </p>
         ) : null}
 
-        <button className="button-primary" disabled={isSubmitting} type="submit">
+        <button className="button-primary text-base" disabled={isSubmitting} type="submit">
           <WandSparkles size={18} />
           {isSubmitting ? "Creating..." : "Create share link"}
         </button>
       </form>
+      <Footer />
     </main>
   );
 }
